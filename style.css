@@ -306,3 +306,44 @@ button:hover {
     font-weight: normal;
     opacity: 0.9;
 }
+
+.btn-control {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    padding: 8px 15px;
+    font-size: 1.2em;
+    border: 2px solid rgba(255,255,255,0.3);
+    margin: 0 5px;
+}
+
+#combo-display {
+    text-align: center;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #FFD700;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    padding: 10px;
+    margin: 10px 0;
+    animation: pulse 0.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.stars {
+    font-size: 2em;
+    margin: 10px 0;
+}
+
+.high-score {
+    font-size: 1.2em;
+    color: #FFD700;
+    margin-top: 10px;
+}
+
+.game-controls {
+    display: flex;
+    gap: 5px;
+}

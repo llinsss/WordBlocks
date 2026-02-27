@@ -30,7 +30,17 @@ const words = {
         { word: 'PEN', meaning: 'You write with this' },
         { word: 'BAG', meaning: 'You carry things in this' },
         { word: 'BOX', meaning: 'A container to put things in' },
-        { word: 'TOY', meaning: 'Something fun to play with' }
+        { word: 'TOY', meaning: 'Something fun to play with' },
+        { word: 'CAR', meaning: 'A vehicle with four wheels' },
+        { word: 'BUS', meaning: 'A big vehicle that carries many people' },
+        { word: 'ANT', meaning: 'A tiny insect that works hard' },
+        { word: 'BEE', meaning: 'An insect that makes honey' },
+        { word: 'EGG', meaning: 'A round thing that chickens lay' },
+        { word: 'FOX', meaning: 'A clever animal with a bushy tail' },
+        { word: 'JAR', meaning: 'A container for storing things' },
+        { word: 'KEY', meaning: 'Opens locks and doors' },
+        { word: 'MAP', meaning: 'Shows you where places are' },
+        { word: 'NET', meaning: 'Used to catch fish or butterflies' }
     ],
     medium: [
         { word: 'TREE', meaning: 'A tall plant with leaves and branches' },
@@ -42,7 +52,17 @@ const words = {
         { word: 'BALL', meaning: 'A round toy you can throw and catch' },
         { word: 'DOOR', meaning: 'You open this to enter a room' },
         { word: 'RAIN', meaning: 'Water that falls from clouds' },
-        { word: 'SNOW', meaning: 'White frozen water that falls in winter' }
+        { word: 'SNOW', meaning: 'White frozen water that falls in winter' },
+        { word: 'WIND', meaning: 'Moving air you can feel' },
+        { word: 'FROG', meaning: 'A green animal that hops and says ribbit' },
+        { word: 'DUCK', meaning: 'A bird that swims and says quack' },
+        { word: 'BEAR', meaning: 'A big furry animal' },
+        { word: 'CAKE', meaning: 'A sweet dessert for birthdays' },
+        { word: 'MILK', meaning: 'A white drink from cows' },
+        { word: 'SOCK', meaning: 'You wear this on your foot' },
+        { word: 'SHOE', meaning: 'You wear this to protect your feet' },
+        { word: 'HAND', meaning: 'The part of your body with fingers' },
+        { word: 'NOSE', meaning: 'You smell with this part of your face' }
     ],
     hard: [
         { word: 'HOUSE', meaning: 'A building where people live' },
@@ -54,7 +74,17 @@ const words = {
         { word: 'BREAD', meaning: 'Food made from flour that you can toast' },
         { word: 'CLOUD', meaning: 'White fluffy things in the sky' },
         { word: 'TIGER', meaning: 'A big orange cat with black stripes' },
-        { word: 'BEACH', meaning: 'Sandy place by the ocean' }
+        { word: 'BEACH', meaning: 'Sandy place by the ocean' },
+        { word: 'HAPPY', meaning: 'Feeling good and joyful' },
+        { word: 'MUSIC', meaning: 'Sounds that are nice to listen to' },
+        { word: 'DANCE', meaning: 'Moving your body to music' },
+        { word: 'PIZZA', meaning: 'A round food with cheese and toppings' },
+        { word: 'HORSE', meaning: 'A large animal you can ride' },
+        { word: 'OCEAN', meaning: 'A very big body of salt water' },
+        { word: 'LIGHT', meaning: 'Brightness that helps you see' },
+        { word: 'MAGIC', meaning: 'Something amazing and mysterious' },
+        { word: 'DREAM', meaning: 'Pictures in your mind when you sleep' },
+        { word: 'HEART', meaning: 'The organ that pumps blood in your body' }
     ]
 };
 
@@ -68,6 +98,8 @@ let gameState = {
     fallingLetters: [],
     collectedLetters: [],
     isPlaying: false,
+    isPaused: false,
+    isMuted: false,
     timeLeft: 60,
     roomCode: null,
     playerId: null,
@@ -75,6 +107,8 @@ let gameState = {
     spelledWords: [],
     wordsRemaining: 10,
     letterFrequency: {},
+    combo: 0,
+    particles: [],
     character: {
         x: 275,
         y: 350,
@@ -83,6 +117,65 @@ let gameState = {
         emoji: '😊',
         targetX: 275,
         celebrating: false
+    }
+};
+
+class Particle {
+    constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 4;
+        this.vy = (Math.random() - 0.5) * 4 - 2;
+        this.life = 1;
+        this.color = color;
+        this.size = Math.random() * 3 + 2;
+    }
+    
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += 0.1;
+        this.life -= 0.02;
+    }
+    
+    draw() {
+        ctx.globalAlpha = this.life;
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, this.size, this.size);
+        ctx.globalAlpha = 1;
+    }
+}
+
+const sounds = {
+    playPop() {
+        if (gameState.isMuted) return;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        oscillator.start(audioCtx.currentTime);
+        oscillator.stop(audioCtx.currentTime + 0.1);
+    },
+    playSuccess() {
+        if (gameState.isMuted) return;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.frequency.setValueAtTime(523, audioCtx.currentTime);
+        oscillator.frequency.setValueAtTime(659, audioCtx.currentTime + 0.1);
+        oscillator.frequency.setValueAtTime(784, audioCtx.currentTime + 0.2);
+        oscillator.type = 'sine';
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        oscillator.start(audioCtx.currentTime);
+        oscillator.stop(audioCtx.currentTime + 0.3);
     }
 };
 
@@ -310,6 +403,9 @@ function initGame() {
         ctx = canvas.getContext('2d');
         
         gameState.score = 0;
+        gameState.combo = 0;
+        gameState.particles = [];
+        gameState.isPaused = false;
         gameState.isPlaying = true;
         gameState.fallingLetters = [];
         gameState.collectedLetters = [];
@@ -326,6 +422,7 @@ function initGame() {
         };
         
         updateScore();
+        updateCombo();
         updateWordsTable();
         updateWordsRemaining();
         selectNewWord();
@@ -396,16 +493,20 @@ function handleCanvasClick(e) {
         const letter = gameState.fallingLetters[i];
         if (!letter.collected && letter.isClicked(x, y)) {
             letter.collected = true;
-            collectLetter(letter.letter);
+            collectLetter(letter.letter, letter.x + letter.width/2, letter.y + letter.height/2);
             gameState.fallingLetters.splice(i, 1);
             break;
         }
     }
 }
 
-function collectLetter(letter) {
+function collectLetter(letter, x, y) {
     if (gameState.collectedLetters.length < gameState.currentWord.word.length) {
         gameState.collectedLetters.push(letter);
+        sounds.playPop();
+        for (let i = 0; i < 10; i++) {
+            gameState.particles.push(new Particle(x, y, '#FFD700'));
+        }
         updateLetterSlots();
     }
 }
@@ -428,10 +529,16 @@ window.submitWord = function() {
     try {
         const userWord = gameState.collectedLetters.join('');
         if (userWord === gameState.currentWord.word) {
-            gameState.score += 10;
+            gameState.combo++;
+            const comboBonus = gameState.combo > 1 ? gameState.combo * 5 : 0;
+            gameState.score += 10 + comboBonus;
             gameState.spelledWords.push(userWord);
             gameState.wordsRemaining--;
+            
+            sounds.playSuccess();
+            createConfetti();
             updateScore();
+            updateCombo();
             updateWordsTable();
             updateWordsRemaining();
             celebrateCharacter();
@@ -452,6 +559,8 @@ window.submitWord = function() {
                 selectNewWord();
             }
         } else {
+            gameState.combo = 0;
+            updateCombo();
             speak('Try again!');
         }
     } catch (error) {
@@ -469,7 +578,7 @@ function updateScore() {
 }
 
 function updateTimer() {
-    if (!gameState.isPlaying) return;
+    if (!gameState.isPlaying || gameState.isPaused) return;
     
     gameState.timeLeft--;
     document.getElementById('timer').textContent = gameState.timeLeft;
@@ -512,10 +621,26 @@ window.endGame = function() {
 function showResult(title, score, opponentScore = null) {
     showScreen('result-screen');
     document.getElementById('result-title').textContent = title;
-    document.getElementById('result-message').textContent = opponentScore !== null 
+    
+    const wordsCompleted = gameState.spelledWords.length;
+    const stars = getStarRating(score, wordsCompleted);
+    const isNewHighScore = saveHighScore();
+    const highScore = getHighScore();
+    
+    let message = opponentScore !== null 
         ? `Your Score: ${score} | Opponent: ${opponentScore}`
-        : `You spelled ${Math.floor(score/10)} words correctly!`;
-    document.getElementById('final-score').textContent = `Final Score: ${score}`;
+        : `You spelled ${wordsCompleted} words correctly!`;
+    
+    if (isNewHighScore && opponentScore === null) {
+        message += ' 🏆 NEW HIGH SCORE!';
+    }
+    
+    document.getElementById('result-message').textContent = message;
+    document.getElementById('final-score').innerHTML = `
+        <div>Final Score: ${score}</div>
+        <div class="stars">${'⭐'.repeat(stars)}${'\u2606'.repeat(3-stars)}</div>
+        ${opponentScore === null ? `<div class="high-score">High Score: ${highScore}</div>` : ''}
+    `;
 }
 
 function gameLoop() {
@@ -523,20 +648,27 @@ function gameLoop() {
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Draw character first (behind letters)
     if (gameState.character) {
-        updateCharacter();
+        if (!gameState.isPaused) updateCharacter();
         drawCharacter();
     }
     
-    // Draw falling letters
     for (let i = gameState.fallingLetters.length - 1; i >= 0; i--) {
         const letter = gameState.fallingLetters[i];
-        letter.update();
+        if (!gameState.isPaused) letter.update();
         letter.draw();
         
         if (letter.y > canvas.height) {
             gameState.fallingLetters.splice(i, 1);
+        }
+    }
+    
+    for (let i = gameState.particles.length - 1; i >= 0; i--) {
+        const particle = gameState.particles[i];
+        particle.update();
+        particle.draw();
+        if (particle.life <= 0) {
+            gameState.particles.splice(i, 1);
         }
     }
     
@@ -639,6 +771,68 @@ function celebrateCharacter() {
             char.celebrating = false;
         }
     }, 150);
+}
+
+function createConfetti() {
+    for (let i = 0; i < 50; i++) {
+        const colors = ['#FF6B6B', '#4ECDC4', '#FFD93D', '#6BCF7F', '#C77DFF'];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        gameState.particles.push(new Particle(
+            canvas.width / 2,
+            canvas.height / 2,
+            color
+        ));
+    }
+}
+
+function updateCombo() {
+    const comboEl = document.getElementById('combo-display');
+    if (gameState.combo > 1) {
+        comboEl.textContent = `🔥 ${gameState.combo}x COMBO!`;
+        comboEl.style.display = 'block';
+    } else {
+        comboEl.style.display = 'none';
+    }
+}
+
+window.togglePause = function() {
+    gameState.isPaused = !gameState.isPaused;
+    document.getElementById('pause-btn').textContent = gameState.isPaused ? '▶️' : '⏸️';
+};
+
+window.toggleMute = function() {
+    gameState.isMuted = !gameState.isMuted;
+    document.getElementById('mute-btn').textContent = gameState.isMuted ? '🔇' : '🔊';
+};
+
+function saveHighScore() {
+    try {
+        const key = `highScore_${gameState.difficulty}`;
+        const current = localStorage.getItem(key) || 0;
+        if (gameState.score > current) {
+            localStorage.setItem(key, gameState.score);
+            return true;
+        }
+    } catch (e) {
+        console.warn('LocalStorage not available');
+    }
+    return false;
+}
+
+function getHighScore() {
+    try {
+        const key = `highScore_${gameState.difficulty}`;
+        return localStorage.getItem(key) || 0;
+    } catch (e) {
+        return 0;
+    }
+}
+
+function getStarRating(score, wordsCompleted) {
+    if (wordsCompleted >= 10) return 3;
+    if (wordsCompleted >= 7) return 2;
+    if (wordsCompleted >= 4) return 1;
+    return 0;
 }
 
 function showScreen(screenId) {

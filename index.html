@@ -60,7 +60,13 @@
                     <div class="target-word">Spell: <span id="target-word"></span></div>
                     <div class="words-left">Words Left: <span id="words-remaining">10</span></div>
                     <div class="timer">Time: <span id="timer">60</span>s</div>
+                    <div class="game-controls">
+                        <button onclick="togglePause()" id="pause-btn" class="btn-control">⏸️</button>
+                        <button onclick="toggleMute()" id="mute-btn" class="btn-control">🔊</button>
+                    </div>
                 </div>
+                
+                <div id="combo-display" style="display:none;"></div>
                 
                 <div id="opponent-section" style="display:none;">
                     <div class="opponent-info">
