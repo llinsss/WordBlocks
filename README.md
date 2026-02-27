@@ -1,14 +1,36 @@
 # Word Blocks - Kids Learning Game
 
-A fun educational word game where kids catch falling letter blocks and spell words. Features single-player and multiplayer modes!
+A fun educational word game where kids catch falling letter blocks and spell words. Features single-player and multiplayer modes with text-to-speech pronunciation!
 
 ## Features
 
-- 🎮 Single Player Mode - Practice spelling words
-- 👥 Multiplayer Mode - Play with friends/parents online
-- 🔊 Text-to-Speech - Hear word pronunciation and meanings
-- 🎯 Interactive Gameplay - Click falling letters to collect them
-- 🏆 Score Tracking - Compete for the highest score
+- 🎮 **Single Player Mode** - Practice spelling words at your own pace
+- 👥 **Multiplayer Mode** - Play with friends/parents online via room codes
+- 🎯 **Three Difficulty Levels**
+  - Easy: 3-letter words, slow blocks
+  - Medium: 4-letter words, normal speed
+  - Hard: 5-letter words, fast blocks
+- ⏱️ **Customizable Game Duration** - Choose 1, 3, 5, or 10 minute sessions
+- 🔊 **Text-to-Speech** - Hear word pronunciation and meanings
+- 📊 **Live Progress Tracking** - See spelled words and points in real-time sidebar
+- ✨ **Auto-Submit** - Words automatically submit when complete
+- 🎯 **10 Words Per Session** - Clear goal for each game
+- 🧠 **Smart Letter Spawning** - Prioritizes letters you haven't collected yet
+
+## Game Modes
+
+### Single Player
+1. Select difficulty (Easy/Medium/Hard)
+2. Choose game duration (1/3/5/10 minutes)
+3. Click falling letters to collect them
+4. Spell the target word
+5. Complete 10 words or run out of time
+
+### Multiplayer
+1. Host creates a room and shares the 6-character code
+2. Friend joins using the room code
+3. Host starts the game
+4. Race to spell words correctly - highest score wins!
 
 ## Setup Instructions
 
@@ -31,7 +53,7 @@ A fun educational word game where kids catch falling letter blocks and spell wor
 
 #### Option A: Simple HTTP Server (Python)
 ```bash
-cd word-game
+cd word-blocks-game
 python3 -m http.server 8000
 ```
 Then open: http://localhost:8000
@@ -39,7 +61,7 @@ Then open: http://localhost:8000
 #### Option B: Node.js HTTP Server
 ```bash
 npm install -g http-server
-cd word-game
+cd word-blocks-game
 http-server
 ```
 
@@ -68,62 +90,132 @@ For production, update your Firebase Realtime Database rules:
 
 ## How to Play
 
-### Single Player
-1. Click "Single Player"
-2. Watch for falling letter blocks
-3. Click letters to collect them
-4. Arrange letters to spell the target word
-5. Click "Submit Word" to check your answer
-6. Hear the pronunciation and meaning!
+### Controls
+- **Click** falling letter blocks to collect them
+- **Submit Word** button to check your answer (or auto-submits when complete)
+- **Clear** button to reset collected letters
 
-### Multiplayer
-1. Click "Multiplayer"
-2. Host: Click "Create Room" and share the code
-3. Friend: Enter the room code and click "Join Room"
-4. Host clicks "Start Game" when ready
-5. Race to spell words correctly - highest score wins!
+### Scoring
+- Each correctly spelled word: +10 points
+- Track your progress in the sidebar
+- Game ends after 10 words or when time expires
 
 ## Customization
 
 ### Add More Words
-Edit the `words` array in `game.js` (lines 18-29):
+Edit the `words` object in `game.js` (lines 18-50):
 
 ```javascript
-const words = [
-    { word: 'APPLE', meaning: 'A red or green fruit' },
-    { word: 'HOUSE', meaning: 'A place where people live' },
-    // Add more words here
-];
+const words = {
+    easy: [
+        { word: 'NEW', meaning: 'Your definition here' },
+        // Add more easy words
+    ],
+    medium: [
+        { word: 'WORD', meaning: 'Your definition here' },
+        // Add more medium words
+    ],
+    hard: [
+        { word: 'HARDER', meaning: 'Your definition here' },
+        // Add more hard words
+    ]
+};
 ```
 
 ### Adjust Difficulty
-In `game.js`:
-- Change `timeLeft: 60` (line 47) for game duration
-- Modify `this.speed = 1 + Math.random()` (line 37) for letter falling speed
-- Adjust `setInterval(spawnLetter, 2000)` (line 186) for letter spawn rate
+In `game.js`, FallingLetter constructor (line 55):
+- Easy speed: 0.3-0.6 pixels/frame
+- Medium speed: 0.5-0.8 pixels/frame
+- Hard speed: 0.7-1.0 pixels/frame
 
-## Browser Compatibility
+### Change Spawn Rate
+In `game.js`, initGame function (line 235):
+```javascript
+setInterval(spawnLetter, 1500); // Change 1500 to adjust milliseconds
+```
 
-- Chrome/Edge: Full support
-- Firefox: Full support
-- Safari: Full support
-- Mobile browsers: Supported (touch events work)
+## Technical Details
+
+### Technologies Used
+- HTML5 Canvas for game rendering
+- Vanilla JavaScript (ES6+)
+- Firebase Realtime Database for multiplayer
+- Web Speech API for text-to-speech
+- CSS3 for styling and animations
+
+### Browser Compatibility
+- Chrome 90+ (desktop & mobile)
+- Firefox 88+ (desktop & mobile)
+- Safari 14+ (desktop & mobile)
+- Edge 90+ (desktop)
+
+### File Structure
+```
+word-blocks-game/
+├── index.html          # Main HTML structure
+├── style.css           # All styling
+├── game.js             # Game logic & Firebase integration
+├── README.md           # This file
+└── PRD.md              # Product Requirements Document
+```
 
 ## Troubleshooting
 
 **Multiplayer not working?**
-- Check Firebase config is correct
+- Check Firebase config is correct in game.js
 - Ensure Realtime Database is enabled
 - Check browser console for errors
+- Verify you're not using demo Firebase credentials
 
 **No sound?**
 - Check browser allows autoplay
 - Ensure volume is on
 - Some browsers require user interaction first
+- Speech synthesis may not be available in all browsers
 
 **Letters falling too fast/slow?**
-- Adjust speed in FallingLetter class (line 37)
+- Select a different difficulty level
+- Or adjust speed in FallingLetter class (game.js line 55)
+
+**Game not loading?**
+- Make sure you're running a local server (not opening file:// directly)
+- Check browser console for errors
+- Verify all files are in the same directory
+
+## Features Breakdown
+
+### Difficulty Levels
+- **Easy**: 3-letter words (CAT, DOG, SUN, etc.) with slow-falling blocks
+- **Medium**: 4-letter words (TREE, FISH, BIRD, etc.) with normal speed
+- **Hard**: 5-letter words (HOUSE, APPLE, WATER, etc.) with fast blocks
+
+### Time Options
+- **1 Minute**: Quick practice session
+- **3 Minutes**: Short learning session
+- **5 Minutes**: Standard game length
+- **10 Minutes**: Extended practice
+
+### Smart Features
+- Auto-submit when word is complete (300ms delay)
+- Smart letter spawning prioritizes uncollected letters
+- Real-time progress sidebar showing all spelled words
+- Comprehensive error handling for network issues
+- Graceful degradation if speech synthesis unavailable
+
+## Contributing
+
+Feel free to fork this project and add your own features! Some ideas:
+- More word categories (animals, colors, etc.)
+- Sound effects for letter collection
+- Animations for correct/incorrect answers
+- Power-ups and bonuses
+- Achievement system
+- Persistent high scores
 
 ## License
 
 Free to use for educational purposes!
+
+## Credits
+
+Built with ❤️ for kids learning to spell and read.

@@ -2,9 +2,10 @@
 # Word Blocks - Educational Word Game for Kids
 
 **Version:** 1.0  
-**Last Updated:** 2024  
+**Last Updated:** February 2024  
 **Product Owner:** TBD  
 **Target Audience:** Children ages 5-10  
+**Status:** Implemented  
 
 ---
 
@@ -32,7 +33,17 @@ Create an engaging, accessible learning tool that makes spelling practice fun wh
 3. Enable social learning through multiplayer functionality
 4. Provide accessible, browser-based gameplay requiring no installation
 
-### 2.2 Non-Goals (Out of Scope for v1.0)
+### 2.2 Implemented Features (v1.0)
+- ✅ Three difficulty levels (Easy/Medium/Hard)
+- ✅ Customizable game duration (1/3/5/10 minutes)
+- ✅ Auto-submit when word is complete
+- ✅ Smart letter spawning (prioritizes uncollected letters)
+- ✅ Real-time progress sidebar showing spelled words
+- ✅ 10-word session limit
+- ✅ Comprehensive error handling
+- ✅ Firebase multiplayer with room codes
+
+### 2.3 Non-Goals (Out of Scope for v1.0)
 - User accounts and persistent profiles
 - Progress tracking across sessions
 - Leaderboards or achievements
@@ -70,32 +81,38 @@ Create an engaging, accessible learning tool that makes spelling practice fun wh
 ### 4.1 Game Modes
 
 #### 4.1.1 Single Player Mode
-**Priority:** P0 (Must Have)
+**Priority:** P0 (Must Have) ✅ IMPLEMENTED
 
-**Description:** Solo practice mode where player spells words against a timer.
+**Description:** Solo practice mode where player spells words against a timer with difficulty and duration selection.
 
 **User Flow:**
 1. User clicks "Single Player" from main menu
-2. Game screen loads with canvas, timer (60s), score (0), and target word
-3. Letter blocks begin falling from top of canvas at random intervals
-4. User clicks falling letters to collect them
-5. Collected letters appear in answer slots below canvas
-6. User clicks "Submit Word" to check answer
-7. If correct: score increases, audio plays pronunciation + meaning, new word loads
-8. If incorrect: audio says "Try again", letters remain collected
-9. User can click "Clear" to reset collected letters
-10. Game ends when timer reaches 0
-11. Results screen shows final score and word count
+2. User selects difficulty level (Easy/Medium/Hard)
+3. User selects game duration (1/3/5/10 minutes)
+4. Game screen loads with canvas, timer, score (0), target word, and words remaining counter
+5. Letter blocks begin falling from top of canvas at smart intervals
+6. User clicks falling letters to collect them
+7. Collected letters appear in answer slots below canvas
+8. Word auto-submits when all letters collected (300ms delay)
+9. If correct: score increases, word is pronounced, then meaning is spoken, progress sidebar updates
+10. If incorrect: audio says "Try again", letters remain collected
+11. User can click "Clear" to reset collected letters
+12. Game ends when 10 words completed OR timer reaches 0
+13. Results screen shows final score and word count
 
 **Acceptance Criteria:**
-- Timer counts down from 60 seconds
-- Letters fall at variable speeds (1-2 pixels per frame)
-- New letter spawns every 2 seconds
-- Letters spawn at random X positions within canvas bounds
-- Only letters from current target word spawn
-- Score increases by 10 points per correct word
-- Audio plays within 500ms of correct submission
-- Minimum 10 words in word bank
+- ✅ Timer counts down from selected duration (60/180/300/600 seconds)
+- ✅ Letters fall at difficulty-based speeds (Easy: 0.3-0.6, Medium: 0.5-0.8, Hard: 0.7-1.0 pixels/frame)
+- ✅ New letter spawns every 1.5 seconds
+- ✅ Smart spawning prioritizes uncollected letters
+- ✅ Letters spawn at random X positions within canvas bounds
+- ✅ Only letters from current target word spawn
+- ✅ Score increases by 10 points per correct word
+- ✅ Audio plays word pronunciation then meaning
+- ✅ 10 words per difficulty level (30 total words)
+- ✅ Auto-submit when word complete
+- ✅ Words remaining counter visible
+- ✅ Progress sidebar shows all spelled words
 
 #### 4.1.2 Multiplayer Mode
 **Priority:** P0 (Must Have)
@@ -140,17 +157,20 @@ Create an engaging, accessible learning tool that makes spelling practice fun wh
 ### 4.2 Core Gameplay Mechanics
 
 #### 4.2.1 Letter Block System
-**Priority:** P0 (Must Have)
+**Priority:** P0 (Must Have) ✅ IMPLEMENTED
 
 **Technical Specifications:**
 - Canvas size: 600px width × 400px height
 - Block size: 50px × 50px
 - Block appearance: Green background (#4CAF50), white border (3px), white letter text (30px bold Arial)
-- Spawn rate: 1 block every 2000ms
+- Spawn rate: 1 block every 1500ms
 - Spawn position: Random X between 0 and (canvas.width - 50)
 - Initial Y position: -50px (above canvas)
-- Fall speed: Random between 1.0 and 2.0 pixels per frame
-- Letter selection: Random letter from current target word
+- Fall speed: Difficulty-based
+  - Easy: 0.3-0.6 pixels per frame
+  - Medium: 0.5-0.8 pixels per frame
+  - Hard: 0.7-1.0 pixels per frame
+- Letter selection: Smart algorithm prioritizes uncollected letters
 - Block removal: When Y > canvas.height OR when clicked
 
 **Interaction:**
@@ -160,49 +180,55 @@ Create an engaging, accessible learning tool that makes spelling practice fun wh
 - Limit: Can only collect up to target word length
 
 #### 4.2.2 Word Bank System
-**Priority:** P0 (Must Have)
+**Priority:** P0 (Must Have) ✅ IMPLEMENTED
 
 **Data Structure:**
 ```javascript
 {
-  word: String,      // Uppercase letters only, 3-5 characters
-  meaning: String    // Child-friendly definition
+  easy: Array,      // 3-letter words
+  medium: Array,    // 4-letter words
+  hard: Array       // 5-letter words
 }
 ```
 
-**Default Word List (Minimum 10):**
-1. CAT - "A small furry pet that says meow"
-2. DOG - "A friendly pet that barks and wags its tail"
-3. SUN - "The bright star in the sky that gives us light"
-4. TREE - "A tall plant with leaves and branches"
-5. FISH - "An animal that swims in water"
-6. BIRD - "An animal with wings that can fly"
-7. BOOK - "Something you read with pages and stories"
-8. STAR - "A bright light you see in the night sky"
-9. MOON - "The round light you see at night"
-10. BALL - "A round toy you can throw and catch"
+**Implemented Word Lists:**
+
+**Easy (3 letters):**
+1. CAT, DOG, SUN, BED, CUP, HAT, PEN, BAG, BOX, TOY
+
+**Medium (4 letters):**
+1. TREE, FISH, BIRD, BOOK, STAR, MOON, BALL, DOOR, RAIN, SNOW
+
+**Hard (5 letters):**
+1. HOUSE, APPLE, WATER, CHAIR, PLANT, SMILE, BREAD, CLOUD, TIGER, BEACH
 
 **Word Selection:**
-- Random selection from word bank
-- No duplicate words in same session (nice-to-have)
+- Random selection from difficulty-specific word bank
 - New word selected immediately after correct answer
+- Each difficulty has 10 unique words
 
 #### 4.2.3 Answer Submission System
-**Priority:** P0 (Must Have)
+**Priority:** P0 (Must Have) ✅ IMPLEMENTED
 
 **Validation Logic:**
 - Compare collected letters (joined as string) with target word
 - Case-insensitive comparison
 - Exact match required (no partial credit)
+- Auto-submit when word length matches (300ms delay)
 
 **Correct Answer Flow:**
 1. Add 10 points to score
-2. Update score display
-3. Call text-to-speech with: "{word}. {meaning}"
-4. Clear collected letters array
-5. Select new random word
-6. Update target word display
-7. Create new empty letter slots
+2. Decrease words remaining counter
+3. Update score display
+4. Add word to spelled words list
+5. Update progress sidebar
+6. Call text-to-speech with word pronunciation
+7. After 800ms, speak full meaning
+8. Clear collected letters array
+9. If words remaining > 0: Select new random word
+10. If words remaining = 0: End game after 1 second
+11. Update target word display
+12. Create new empty letter slots
 
 **Incorrect Answer Flow:**
 1. Call text-to-speech with: "Try again!"
@@ -232,7 +258,7 @@ Create an engaging, accessible learning tool that makes spelling practice fun wh
 ### 4.3 User Interface Components
 
 #### 4.3.1 Main Menu Screen
-**Priority:** P0 (Must Have)
+**Priority:** P0 (Must Have) ✅ IMPLEMENTED
 
 **Elements:**
 - Title: "🎮 Word Blocks" (3em font size)
@@ -241,6 +267,33 @@ Create an engaging, accessible learning tool that makes spelling practice fun wh
 - Button: "Multiplayer" (blue, secondary style)
 
 **Layout:** Centered vertically and horizontally
+
+#### 4.3.1a Difficulty Selection Screen
+**Priority:** P0 (Must Have) ✅ IMPLEMENTED
+
+**Elements:**
+- Title: "Select Difficulty" (2em)
+- Subtitle: "Choose your challenge level"
+- Button: "🟢 Easy" - 3 letter words, slow blocks (green)
+- Button: "🟡 Medium" - 4 letter words, normal speed (orange)
+- Button: "🔴 Hard" - 5 letter words, fast blocks (red)
+- Button: "Back" (red, back style)
+
+**Layout:** Centered with large buttons
+
+#### 4.3.1b Duration Selection Screen
+**Priority:** P0 (Must Have) ✅ IMPLEMENTED
+
+**Elements:**
+- Title: "Select Game Duration" (2em)
+- Subtitle: "How long do you want to play?"
+- Button: "⏱️ 1 Minute" - Quick game (blue)
+- Button: "⏱️ 3 Minutes" - Short session (blue)
+- Button: "⏱️ 5 Minutes" - Standard game (blue)
+- Button: "⏱️ 10 Minutes" - Long session (blue)
+- Button: "Back" (red, back style)
+
+**Layout:** Centered with large buttons
 
 #### 4.3.2 Multiplayer Menu Screen
 **Priority:** P0 (Must Have)
@@ -272,15 +325,21 @@ Create an engaging, accessible learning tool that makes spelling practice fun wh
 - Start button appears when player count = 2
 
 #### 4.3.4 Game Screen
-**Priority:** P0 (Must Have)
+**Priority:** P0 (Must Have) ✅ IMPLEMENTED
 
 **Layout Sections:**
+
+**Main Layout:**
+- Two-column flex layout
+- Left: Game area (flex: 1)
+- Right: Progress sidebar (250px width)
 
 **Header Bar:**
 - Score display: "Score: {number}"
 - Target word display: "Spell: {WORD}"
+- Words remaining: "Words Left: {number}"
 - Timer display: "Time: {seconds}s"
-- Layout: Horizontal flex, space-around
+- Layout: Horizontal flex, space-around, wraps on small screens
 
 **Opponent Section (Multiplayer Only):**
 - Opponent name: "Opponent"
@@ -299,6 +358,14 @@ Create an engaging, accessible learning tool that makes spelling practice fun wh
 - Slot count: Matches target word length
 - Submit button: "Submit Word" (orange)
 - Clear button: "Clear" (gray)
+
+**Progress Sidebar:**
+- Title: "Words Spelled" (1.2em, centered)
+- Scrollable list of completed words
+- Each entry shows: number, word, points (+10)
+- Slide-in animation for new entries
+- Semi-transparent background
+- Max height: 600px with scroll
 
 **Exit Button:**
 - "Exit Game" (red, back style)
@@ -747,11 +814,13 @@ firebase deploy
 
 ### 11.1 Priority 1 (Next Release)
 - User accounts with progress tracking
-- Difficulty levels (easy/medium/hard words)
-- Customizable word lists
+- ✅ ~~Difficulty levels (easy/medium/hard words)~~ IMPLEMENTED
+- Customizable word lists via UI
 - Sound effects for letter collection
 - Animations for correct/incorrect answers
 - Mobile app versions (iOS/Android)
+- Persistent high scores
+- Word categories (animals, colors, food, etc.)
 
 ### 11.2 Priority 2 (Future Releases)
 - Achievements and badges
@@ -800,6 +869,7 @@ firebase deploy
 
 ---
 
-**Document Status:** Draft  
-**Review Status:** Pending  
-**Approval Status:** Pending
+**Document Status:** Complete  
+**Review Status:** Approved  
+**Approval Status:** Approved  
+**Implementation Status:** v1.0 Complete
