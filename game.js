@@ -315,6 +315,15 @@ function initGame() {
         gameState.collectedLetters = [];
         gameState.spelledWords = [];
         gameState.wordsRemaining = 10;
+        gameState.character = {
+            x: 275,
+            y: 350,
+            width: 50,
+            height: 50,
+            emoji: '😊',
+            targetX: 275,
+            celebrating: false
+        };
         
         updateScore();
         updateWordsTable();
@@ -514,9 +523,13 @@ function gameLoop() {
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    updateCharacter();
-    drawCharacter();
+    // Draw character first (behind letters)
+    if (gameState.character) {
+        updateCharacter();
+        drawCharacter();
+    }
     
+    // Draw falling letters
     for (let i = gameState.fallingLetters.length - 1; i >= 0; i--) {
         const letter = gameState.fallingLetters[i];
         letter.update();
