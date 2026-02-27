@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Blocks - Kids Learning Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="menu-screen" class="screen active">
+        <h1>🎮 Word Blocks</h1>
+        <p>Catch the letters and spell the word!</p>
+        <button onclick="startSinglePlayer()" class="btn-primary">Single Player</button>
+        <button onclick="showMultiplayerMenu()" class="btn-secondary">Multiplayer</button>
+    </div>
+
+    <div id="multiplayer-menu" class="screen">
+        <h2>Multiplayer Mode</h2>
+        <button onclick="createRoom()" class="btn-primary">Create Room</button>
+        <div class="join-room">
+            <input type="text" id="room-code" placeholder="Enter Room Code" maxlength="6">
+            <button onclick="joinRoom()" class="btn-secondary">Join Room</button>
+        </div>
+        <button onclick="showMainMenu()" class="btn-back">Back</button>
+    </div>
+
+    <div id="waiting-room" class="screen">
+        <h2>Waiting Room</h2>
+        <p>Room Code: <span id="display-room-code" class="room-code"></span></p>
+        <p class="share-text">Share this code with your friend!</p>
+        <div id="players-list"></div>
+        <button onclick="startMultiplayerGame()" id="start-game-btn" class="btn-primary" style="display:none;">Start Game</button>
+        <button onclick="leaveRoom()" class="btn-back">Leave Room</button>
+    </div>
+
+    <div id="difficulty-screen" class="screen">
+        <h2>Select Difficulty</h2>
+        <p>Choose your challenge level</p>
+        <button onclick="selectDifficulty('easy')" class="btn-difficulty btn-easy">🟢 Easy<br><span class="difficulty-desc">3 letter words, slow blocks</span></button>
+        <button onclick="selectDifficulty('medium')" class="btn-difficulty btn-medium">🟡 Medium<br><span class="difficulty-desc">4 letter words, normal speed</span></button>
+        <button onclick="selectDifficulty('hard')" class="btn-difficulty btn-hard">🔴 Hard<br><span class="difficulty-desc">5 letter words, fast blocks</span></button>
+        <button onclick="showMainMenu()" class="btn-back">Back</button>
+    </div>
+
+    <div id="duration-screen" class="screen">
+        <h2>Select Game Duration</h2>
+        <p>How long do you want to play?</p>
+        <button onclick="selectDuration(1)" class="btn-duration">⏱️ 1 Minute<br><span class="duration-desc">Quick game</span></button>
+        <button onclick="selectDuration(3)" class="btn-duration">⏱️ 3 Minutes<br><span class="duration-desc">Short session</span></button>
+        <button onclick="selectDuration(5)" class="btn-duration">⏱️ 5 Minutes<br><span class="duration-desc">Standard game</span></button>
+        <button onclick="selectDuration(10)" class="btn-duration">⏱️ 10 Minutes<br><span class="duration-desc">Long session</span></button>
+        <button onclick="showScreen('difficulty-screen')" class="btn-back">Back</button>
+    </div>
+
+    <div id="game-screen" class="screen">
+        <div class="game-layout">
+            <div class="game-main">
+                <div class="game-header">
+                    <div class="score">Score: <span id="score">0</span></div>
+                    <div class="target-word">Spell: <span id="target-word"></span></div>
+                    <div class="words-left">Words Left: <span id="words-remaining">10</span></div>
+                    <div class="timer">Time: <span id="timer">60</span>s</div>
+                </div>
+                
+                <div id="opponent-section" style="display:none;">
+                    <div class="opponent-info">
+                        <span id="opponent-name">Opponent</span>: <span id="opponent-score">0</span>
+                    </div>
+                </div>
+
+                <div id="game-container">
+                    <canvas id="game-canvas"></canvas>
+                </div>
+
+                <div id="answer-area">
+                    <div id="letter-slots"></div>
+                    <button onclick="submitWord()" class="btn-submit">Submit Word</button>
+                    <button onclick="clearWord()" class="btn-clear">Clear</button>
+                </div>
+
+                <button onclick="endGame()" class="btn-back">Exit Game</button>
+            </div>
+            
+            <div class="game-sidebar">
+                <div id="words-table">
+                    <h3>Words Spelled</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="result-screen" class="screen">
+        <h2 id="result-title">Game Over!</h2>
+        <p id="result-message"></p>
+        <div id="final-score"></div>
+        <button onclick="showMainMenu()" class="btn-primary">Main Menu</button>
+    </div>
+
+    <script type="module" src="game.js"></script>
+</body>
+</html>
