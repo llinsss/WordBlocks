@@ -74,7 +74,16 @@ let gameState = {
     isHost: false,
     spelledWords: [],
     wordsRemaining: 10,
-    letterFrequency: {}
+    letterFrequency: {},
+    character: {
+        x: 275,
+        y: 350,
+        width: 50,
+        height: 50,
+        emoji: '😊',
+        targetX: 275,
+        celebrating: false
+    }
 };
 
 class FallingLetter {
@@ -416,6 +425,7 @@ window.submitWord = function() {
             updateScore();
             updateWordsTable();
             updateWordsRemaining();
+            celebrateCharacter();
             speak(userWord);
             setTimeout(() => speakWord(gameState.currentWord.word, gameState.currentWord.meaning), 800);
             
@@ -504,6 +514,9 @@ function gameLoop() {
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
+    updateCharacter();
+    drawCharacter();
+    
     for (let i = gameState.fallingLetters.length - 1; i >= 0; i--) {
         const letter = gameState.fallingLetters[i];
         letter.update();
@@ -546,6 +559,73 @@ function updateWordsTable() {
 
 function updateWordsRemaining() {
     document.getElementById('words-remaining').textContent = gameState.wordsRemaining;
+}
+
+function updateCharacter() {
+    const char = gameState.character;
+    
+    if (char.celebrating) return;
+    
+    let nearestLetter = null;
+    let minDistance = Infinity;
+    
+    gameState.fallingLetters.forEach(letter => {
+        if (letter.y > canvas.height - 100 && !letter.collected) {
+            const distance = Math.abs(letter.x + letter.width/2 - (char.x + char.width/2));
+            if (distance < minDistance) {
+                minDistance = distance;
+                nearestLetter = letter;
+            }
+        }
+    });
+    
+    if (nearestLetter) {
+        const letterCenter = nearestLetter.x + nearestLetter.width/2;
+        const charCenter = char.x + char.width/2;
+        
+        if (Math.abs(letterCenter - charCenter) > 30) {
+            char.targetX = letterCenter < charCenter ? char.x - 60 : char.x + 60;
+            char.targetX = Math.max(0, Math.min(canvas.width - char.width, char.targetX));
+        }
+    }
+    
+    if (char.x < char.targetX) {
+        char.x = Math.min(char.x + 2, char.targetX);
+    } else if (char.x > char.targetX) {
+        char.x = Math.max(char.x - 2, char.targetX);
+    }
+}
+
+function drawCharacter() {
+    const char = gameState.character;
+    ctx.font = '40px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(char.emoji, char.x + char.width/2, char.y + char.height/2);
+}
+
+function celebrateCharacter() {
+    const char = gameState.character;
+    char.celebrating = true;
+    char.emoji = '🎉';
+    
+    let jumpCount = 0;
+    const originalY = char.y;
+    const jumpInterval = setInterval(() => {
+        if (jumpCount % 2 === 0) {
+            char.y = originalY - 20;
+        } else {
+            char.y = originalY;
+        }
+        jumpCount++;
+        
+        if (jumpCount >= 4) {
+            clearInterval(jumpInterval);
+            char.y = originalY;
+            char.emoji = '😊';
+            char.celebrating = false;
+        }
+    }, 150);
 }
 
 function showScreen(screenId) {
