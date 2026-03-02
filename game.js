@@ -89,6 +89,7 @@ const words = {
 };
 
 let canvas, ctx;
+let spawnInterval, timerInterval;
 let gameState = {
     mode: 'single',
     difficulty: 'easy',
@@ -430,8 +431,10 @@ function initGame() {
         
         canvas.addEventListener('click', handleCanvasClick);
         
-        setInterval(spawnLetter, 1500);
-        setInterval(updateTimer, 1000);
+        if (spawnInterval) clearInterval(spawnInterval);
+        if (timerInterval) clearInterval(timerInterval);
+        spawnInterval = setInterval(spawnLetter, 1500);
+        timerInterval = setInterval(updateTimer, 1000);
         gameLoop();
     } catch (error) {
         console.error('Failed to initialize game:', error);
@@ -590,6 +593,8 @@ function updateTimer() {
 
 window.endGame = function() {
     gameState.isPlaying = false;
+    if (spawnInterval) clearInterval(spawnInterval);
+    if (timerInterval) clearInterval(timerInterval);
     
     try {
         if (gameState.mode === 'multiplayer' && gameState.roomCode && database) {
