@@ -398,8 +398,9 @@ function listenToOpponent() {
 function initGame() {
     try {
         canvas = document.getElementById('game-canvas');
-        canvas.width = 600;
-        canvas.height = 400;
+        const isMobile = window.innerWidth <= 768;
+        canvas.width = isMobile ? Math.min(window.innerWidth - 40, 400) : 600;
+        canvas.height = isMobile ? Math.min(window.innerHeight * 0.4, 300) : 400;
         ctx = canvas.getContext('2d');
         
         gameState.score = 0;
@@ -542,8 +543,7 @@ window.submitWord = function() {
             updateWordsTable();
             updateWordsRemaining();
             celebrateCharacter();
-            speak(userWord);
-            setTimeout(() => speakWord(gameState.currentWord.word, gameState.currentWord.meaning), 800);
+            speakWord(gameState.currentWord.word, gameState.currentWord.meaning);
             
             if (gameState.mode === 'multiplayer' && database) {
                 update(ref(database, `rooms/${gameState.roomCode}/players/${gameState.playerId}`), {
