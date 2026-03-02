@@ -234,6 +234,7 @@ window.selectDuration = function(minutes) {
 };
 
 window.showMultiplayerMenu = function() {
+    resetGame();
     showScreen('multiplayer-menu');
 };
 
@@ -253,9 +254,14 @@ window.createRoom = function() {
         gameState.roomCode = roomCode;
         gameState.playerId = generatePlayerId();
         gameState.isHost = true;
+        gameState.difficulty = 'medium';
+        gameState.duration = 180;
+        gameState.timeLeft = 180;
         
         set(ref(database, `rooms/${roomCode}`), {
             host: gameState.playerId,
+            difficulty: 'medium',
+            duration: 180,
             players: {
                 [gameState.playerId]: { name: 'Player 1', score: 0, ready: true }
             },
@@ -301,6 +307,10 @@ window.joinRoom = function() {
                 return;
             }
             
+            gameState.difficulty = room.difficulty || 'medium';
+            gameState.duration = room.duration || 180;
+            gameState.timeLeft = room.duration || 180;
+            
             update(ref(database, `rooms/${roomCode}/players/${gameState.playerId}`), {
                 name: 'Player 2',
                 score: 0,
@@ -335,6 +345,8 @@ window.startMultiplayerGame = function() {
     try {
         update(ref(database, `rooms/${gameState.roomCode}`), {
             status: 'playing',
+            difficulty: gameState.difficulty,
+            duration: gameState.duration,
             startedAt: Date.now()
         });
         
@@ -359,6 +371,7 @@ window.leaveRoom = function() {
             console.error('Failed to leave room:', error);
         }
     }
+    document.getElementById('room-code').value = '';
     showMainMenu();
 };
 
@@ -387,6 +400,7 @@ function listenToOpponent() {
             if (players) {
                 const opponent = Object.entries(players).find(([id]) => id !== gameState.playerId);
                 if (opponent) {
+                    document.getElementById('opponent-name').textContent = opponent[1].name;
                     document.getElementById('opponent-score').textContent = opponent[1].score;
                 }
             }
@@ -601,19 +615,26 @@ window.endGame = function() {
             onValue(ref(database, `rooms/${gameState.roomCode}/players`), (snapshot) => {
                 const players = snapshot.val();
                 if (players) {
-                    const scores = Object.values(players).map(p => p.score);
-                    const myScore = gameState.score;
-                    const opponentScore = scores.find(s => s !== myScore) || 0;
+                    const playersList = Object.entries(players);
+                    const myPlayer = playersList.find(([id]) => id === gameState.playerId);
+                    const opponentPlayer = playersList.find(([id]) => id !== gameState.playerId);
                     
-                    showResult(myScore > opponentScore ? 'You Win!' : myScore < opponentScore ? 'You Lose!' : 'Tie!', myScore, opponentScore);
+                    const myScore = myPlayer ? myPlayer[1].score : gameState.score;
+                    const opponentScore = opponentPlayer ? opponentPlayer[1].score : 0;
+                    
+                    showResult(myScore > opponentScore ? 'You Win! 🎉' : myScore < opponentScore ? 'You Lose 😢' : 'Tie! 🤝', myScore, opponentScore);
+                } else {
+                    showResult('Game Over!', gameState.score);
                 }
             }, { onlyOnce: true });
             
-            if (gameState.isHost) {
-                remove(ref(database, `rooms/${gameState.roomCode}`)).catch(error => 
-                    console.error('Failed to delete room:', error)
-                );
-            }
+            setTimeout(() => {
+                if (gameState.isHost && database) {
+                    remove(ref(database, `rooms/${gameState.roomCode}`)).catch(error => 
+                        console.error('Failed to delete room:', error)
+                    );
+                }
+            }, 1000);
         } else {
             showResult('Game Over!', gameState.score);
         }
@@ -855,8 +876,17 @@ function generatePlayerId() {
 
 function resetGame() {
     gameState.isPlaying = false;
+    if (spawnInterval) clearInterval(spawnInterval);
+    if (timerInterval) clearInterval(timerInterval);
     gameState.roomCode = null;
     gameState.playerId = null;
     gameState.isHost = false;
     gameState.spelledWords = [];
+    gameState.mode = 'single';
+    gameState.difficulty = 'easy';
+    gameState.duration = 60;
+    gameState.timeLeft = 60;
+    if (document.getElementById('opponent-section')) {
+        document.getElementById('opponent-section').style.display = 'none';
+    }
 }
