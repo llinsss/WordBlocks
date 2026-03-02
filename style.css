@@ -402,6 +402,20 @@ button:hover {
     margin-top: 10px;
 }
 
+.game-footer {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.9em;
+    opacity: 0.7;
+}
+
+.game-footer p {
+    margin: 0;
+    font-size: 0.9em;
+}
+
 .game-controls {
     display: flex;
     gap: 5px;
