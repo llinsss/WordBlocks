@@ -1,6 +1,9 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getDatabase, ref, set, onValue, update, remove, push } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
+// FIREBASE CONFIGURATION
+// Replace this entire firebaseConfig object with your actual Firebase config
+// Get it from: Firebase Console > Project Settings > Your apps > Web app
 const firebaseConfig = {
     apiKey: "AIzaSyDemoKey-ReplaceWithYourKey",
     authDomain: "word-game-demo.firebaseapp.com",
