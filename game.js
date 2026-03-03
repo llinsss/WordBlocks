@@ -1,26 +1,31 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getDatabase, ref, set, onValue, update, remove, push } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+console.log('🎮 Blocword game.js loaded successfully');
 
 // FIREBASE CONFIGURATION
-// Replace this entire firebaseConfig object with your actual Firebase config
-// Get it from: Firebase Console > Project Settings > Your apps > Web app
+// Your actual Firebase config from Firebase Console
 const firebaseConfig = {
-    apiKey: "AIzaSyDemoKey-ReplaceWithYourKey",
-    authDomain: "word-game-demo.firebaseapp.com",
-    databaseURL: "https://word-game-demo-default-rtdb.firebaseio.com",
-    projectId: "word-game-demo",
-    storageBucket: "word-game-demo.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "1:123456789:web:abcdef123456"
+    apiKey: "AIzaSyBJ7gTfR6dtuVAymAyrPoERdMuQGluoEwQ",
+    authDomain: "blocword-c882a.firebaseapp.com",
+    databaseURL: "https://blocword-c882a-default-rtdb.firebaseio.com",
+    projectId: "blocword-c882a",
+    storageBucket: "blocword-c882a.firebasestorage.app",
+    messagingSenderId: "325895402586",
+    appId: "1:325895402586:web:4ea2a7be4401bae4629463"
 };
 
-let app, database;
+let app, database, auth;
 try {
     app = initializeApp(firebaseConfig);
     database = getDatabase(app);
+    auth = getAuth(app);
 } catch (error) {
     console.warn('Firebase initialization failed. Multiplayer disabled.', error);
 }
+
+let currentUser = null;
 
 const words = {
     easy: [
@@ -447,6 +452,7 @@ function initGame() {
         selectNewWord();
         
         canvas.addEventListener('click', handleCanvasClick);
+        canvas.addEventListener('touchstart', handleCanvasTouch);
         
         if (spawnInterval) clearInterval(spawnInterval);
         if (timerInterval) clearInterval(timerInterval);
@@ -506,9 +512,39 @@ function spawnLetter() {
 }
 
 function handleCanvasClick(e) {
+    if (!gameState.isPlaying || gameState.isPaused) return;
+    
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+    
+    console.log('Click at:', x, y, 'Letters:', gameState.fallingLetters.length);
+    
+    for (let i = gameState.fallingLetters.length - 1; i >= 0; i--) {
+        const letter = gameState.fallingLetters[i];
+        if (!letter.collected && letter.isClicked(x, y)) {
+            console.log('Collected:', letter.letter);
+            letter.collected = true;
+            collectLetter(letter.letter, letter.x + letter.width/2, letter.y + letter.height/2);
+            gameState.fallingLetters.splice(i, 1);
+            return;
+        }
+    }
+    console.log('No letter clicked');
+}
+
+function handleCanvasTouch(e) {
+    e.preventDefault();
+    if (!gameState.isPlaying || gameState.isPaused) return;
+    
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = (touch.clientX - rect.left) * scaleX;
+    const y = (touch.clientY - rect.top) * scaleY;
     
     for (let i = gameState.fallingLetters.length - 1; i >= 0; i--) {
         const letter = gameState.fallingLetters[i];
@@ -516,7 +552,7 @@ function handleCanvasClick(e) {
             letter.collected = true;
             collectLetter(letter.letter, letter.x + letter.width/2, letter.y + letter.height/2);
             gameState.fallingLetters.splice(i, 1);
-            break;
+            return;
         }
     }
 }
@@ -893,3 +929,121 @@ function resetGame() {
         document.getElementById('opponent-section').style.display = 'none';
     }
 }
+
+
+// Authentication Functions
+window.showSignup = function() {
+    showScreen('signup-screen');
+};
+
+window.showLogin = function() {
+    showScreen('login-screen');
+};
+
+window.signup = async function() {
+    const name = document.getElementById('signup-name').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+    
+    if (!name || !email || !password) {
+        alert('Please fill in all fields');
+        return;
+    }
+    
+    if (password.length < 6) {
+        alert('Password must be at least 6 characters');
+        return;
+    }
+    
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(userCredential.user, { displayName: name });
+        currentUser = { name, email };
+        showScreen('menu-screen');
+        updateWelcomeMessage();
+    } catch (error) {
+        if (error.code === 'auth/email-already-in-use') {
+            alert('Email already in use. Please login instead.');
+        } else if (error.code === 'auth/invalid-email') {
+            alert('Invalid email address');
+        } else {
+            alert('Signup failed: ' + error.message);
+        }
+    }
+};
+
+window.login = async function() {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    
+    if (!email || !password) {
+        alert('Please fill in all fields');
+        return;
+    }
+    
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        currentUser = { 
+            name: userCredential.user.displayName || 'Player',
+            email: userCredential.user.email 
+        };
+        showScreen('menu-screen');
+        updateWelcomeMessage();
+    } catch (error) {
+        if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+            alert('Invalid email or password. Please check your credentials and try again.');
+        } else if (error.code === 'auth/invalid-email') {
+            alert('Invalid email format');
+        } else if (error.code === 'auth/too-many-requests') {
+            alert('Too many failed login attempts. Please try again later.');
+        } else {
+            alert('Login failed: ' + error.message);
+        }
+        console.error('Login error:', error.code, error.message);
+    }
+};
+
+window.logout = function() {
+    signOut(auth).then(() => {
+        currentUser = null;
+        showScreen('landing-screen');
+    }).catch((error) => {
+        console.error('Logout failed:', error);
+    });
+};
+
+function updateWelcomeMessage() {
+    const welcomeEl = document.getElementById('welcome-message');
+    if (welcomeEl && currentUser) {
+        welcomeEl.textContent = `Welcome, ${currentUser.name}! 👋`;
+    }
+}
+
+// Check auth state on load
+if (auth) {
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUser = { 
+                name: user.displayName || 'Player',
+                email: user.email 
+            };
+            showScreen('menu-screen');
+            updateWelcomeMessage();
+        } else {
+            currentUser = null;
+            showScreen('landing-screen');
+        }
+    });
+} else {
+    console.error('Firebase Auth not initialized');
+    showScreen('landing-screen');
+}
+
+// Ensure all functions are available
+console.log('Game loaded. Functions available:', {
+    showSignup: typeof window.showSignup,
+    showLogin: typeof window.showLogin,
+    signup: typeof window.signup,
+    login: typeof window.login,
+    logout: typeof window.logout
+});
