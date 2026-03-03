@@ -1107,3 +1107,26 @@ console.log('Game loaded. Functions available:', {
     login: typeof window.login,
     logout: typeof window.logout
 });
+
+// Add event listeners for auth buttons
+document.addEventListener('DOMContentLoaded', () => {
+    const signupBtn = document.getElementById('signup-btn');
+    const loginBtn = document.getElementById('login-btn');
+    const showLoginBtn = document.getElementById('show-login-btn');
+    const showSignupBtn = document.getElementById('show-signup-btn');
+    
+    if (signupBtn) signupBtn.addEventListener('click', window.signup);
+    if (loginBtn) loginBtn.addEventListener('click', window.login);
+    if (showLoginBtn) showLoginBtn.addEventListener('click', window.showLogin);
+    if (showSignupBtn) showSignupBtn.addEventListener('click', window.showSignup);
+    
+    // Enter key support
+    const signupPassword = document.getElementById('signup-password');
+    const loginPassword = document.getElementById('login-password');
+    if (signupPassword) signupPassword.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') window.signup();
+    });
+    if (loginPassword) loginPassword.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') window.login();
+    });
+});
