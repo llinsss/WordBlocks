@@ -2,6 +2,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getDatabase, ref, set, onValue, update, remove, push } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
+// Version: 1.0.1
 console.log('🎮 Blocword game.js loaded successfully');
 
 // FIREBASE CONFIGURATION
@@ -372,9 +373,6 @@ window.startMultiplayerGame = function() {
         syncTimer();
     } catch (error) {
         console.error('Failed to start game:', error);
-        alert('Failed to start game. Please try again.');
-    }
-};
         alert('Failed to start game. Please try again.');
     }
 };
