@@ -416,6 +416,53 @@ button:hover {
     font-size: 0.9em;
 }
 
+.auth-form {
+    max-width: 400px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.auth-form input {
+    font-family: inherit;
+    font-size: 1.1em;
+    padding: 15px 20px;
+    border-radius: 25px;
+    border: 2px solid rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    text-align: center;
+}
+
+.auth-form input::placeholder {
+    color: rgba(255,255,255,0.6);
+}
+
+.auth-form input:focus {
+    outline: none;
+    border-color: rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.15);
+}
+
+#welcome-message {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #FFD700;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+    .auth-form {
+        max-width: 90%;
+    }
+    
+    .auth-form input {
+        font-size: 1em;
+        padding: 12px 15px;
+    }
+}
+
 .game-controls {
     display: flex;
     gap: 5px;

@@ -1,18 +1,35 @@
-Traceback (most recent call last):
-  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/runpy.py", line 197, in _run_module_as_main
-    return _run_code(code, main_globals, None,
-  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/runpy.py", line 87, in _run_code
-    exec(code, run_globals)
-  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/server.py", line 1297, in <module>
-    test(
-  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/server.py", line 1252, in test
-    with ServerClass(addr, HandlerClass) as httpd:
-  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 452, in __init__
-    self.server_bind()
-  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/server.py", line 1295, in server_bind
-    return super().server_bind()
-  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/http/server.py", line 138, in server_bind
-    socketserver.TCPServer.server_bind(self)
-  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/socketserver.py", line 466, in server_bind
-    self.socket.bind(self.server_address)
-OSError: [Errno 48] Address already in use
+::1 - - [03/Mar/2026 11:13:40] "GET / HTTP/1.1" 200 -
+::1 - - [03/Mar/2026 11:13:40] "GET /style.css HTTP/1.1" 200 -
+::1 - - [03/Mar/2026 11:13:40] "GET /game.js HTTP/1.1" 200 -
+::1 - - [03/Mar/2026 11:13:44] code 404, message File not found
+::1 - - [03/Mar/2026 11:13:44] "GET /favicon.ico HTTP/1.1" 404 -
+::1 - - [03/Mar/2026 11:39:04] "GET / HTTP/1.1" 304 -
+::1 - - [03/Mar/2026 11:39:04] "GET /style.css HTTP/1.1" 304 -
+::1 - - [03/Mar/2026 11:39:04] "GET /game.js HTTP/1.1" 200 -
+::1 - - [03/Mar/2026 11:42:41] "GET / HTTP/1.1" 304 -
+::1 - - [03/Mar/2026 11:42:41] "GET /game.js HTTP/1.1" 200 -
+::1 - - [03/Mar/2026 11:43:32] code 404, message File not found
+::1 - - [03/Mar/2026 11:43:32] "GET /favicon.ico HTTP/1.1" 404 -
+::1 - - [03/Mar/2026 11:49:06] "GET / HTTP/1.1" 304 -
+::1 - - [03/Mar/2026 11:49:06] "GET /style.css HTTP/1.1" 304 -
+::1 - - [03/Mar/2026 11:49:06] "GET /game.js HTTP/1.1" 200 -
+::1 - - [03/Mar/2026 11:49:26] "GET / HTTP/1.1" 304 -
+::1 - - [03/Mar/2026 11:49:26] "GET /game.js HTTP/1.1" 304 -
+::1 - - [03/Mar/2026 11:54:25] "GET / HTTP/1.1" 200 -
+::1 - - [03/Mar/2026 11:54:25] "GET /style.css HTTP/1.1" 200 -
+::1 - - [03/Mar/2026 11:54:25] "GET /game.js HTTP/1.1" 200 -
+::1 - - [03/Mar/2026 11:54:25] code 404, message File not found
+::1 - - [03/Mar/2026 11:54:25] "GET /favicon.ico HTTP/1.1" 404 -
+::1 - - [03/Mar/2026 11:54:38] "GET / HTTP/1.1" 200 -
+::1 - - [03/Mar/2026 11:54:38] "GET /style.css HTTP/1.1" 200 -
+::1 - - [03/Mar/2026 11:54:38] "GET /game.js HTTP/1.1" 200 -
+::1 - - [03/Mar/2026 11:54:39] code 404, message File not found
+::1 - - [03/Mar/2026 11:54:39] "GET /favicon.ico HTTP/1.1" 404 -
+::1 - - [03/Mar/2026 11:55:03] code 404, message File not found
+::1 - - [03/Mar/2026 11:55:03] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [03/Mar/2026 11:56:56] "GET / HTTP/1.1" 304 -
+::1 - - [03/Mar/2026 11:56:56] code 404, message File not found
+::1 - - [03/Mar/2026 11:56:56] "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 -
+::1 - - [03/Mar/2026 11:56:56] "GET /game.js HTTP/1.1" 200 -
+::1 - - [03/Mar/2026 11:57:42] code 404, message File not found
+::1 - - [03/Mar/2026 11:57:42] "GET /favicon.ico HTTP/1.1" 404 -
