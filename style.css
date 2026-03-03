@@ -251,7 +251,8 @@ button:hover {
     }
     .game-sidebar {
         width: 100%;
-        max-height: 200px;
+        max-height: 300px;
+        margin-top: 15px;
     }
 }
 
