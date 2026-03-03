@@ -194,9 +194,8 @@ class FallingLetter {
         this.letter = letter;
         this.x = x;
         this.y = -50;
-        const speedMap = { easy: 0.3, medium: 0.5, hard: 0.7 };
-        const baseSpeed = speedMap[difficulty] || 0.5;
-        this.speed = baseSpeed + Math.random() * 0.3;
+        const speedMap = { easy: 1, medium: 1.5, hard: 2 };
+        this.speed = speedMap[difficulty] || 1.5;
         this.width = 50;
         this.height = 50;
         this.collected = false;
