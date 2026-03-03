@@ -266,12 +266,14 @@ window.createRoom = function() {
         gameState.duration = 180;
         gameState.timeLeft = 180;
         
+        const playerName = currentUser ? currentUser.name : 'Player';
+        
         set(ref(database, `rooms/${roomCode}`), {
             host: gameState.playerId,
             difficulty: 'medium',
             duration: 180,
             players: {
-                [gameState.playerId]: { name: 'Player 1', score: 0, ready: true }
+                [gameState.playerId]: { name: playerName, score: 0, ready: true }
             },
             status: 'waiting',
             createdAt: Date.now()
@@ -319,8 +321,10 @@ window.joinRoom = function() {
             gameState.duration = room.duration || 180;
             gameState.timeLeft = room.duration || 180;
             
+            const playerName = currentUser ? currentUser.name : 'Player';
+            
             update(ref(database, `rooms/${roomCode}/players/${gameState.playerId}`), {
-                name: 'Player 2',
+                name: playerName,
                 score: 0,
                 ready: true
             });
@@ -338,6 +342,7 @@ window.joinRoom = function() {
                     showScreen('game-screen');
                     initGame();
                     listenToOpponent();
+                    syncTimer();
                 }
             });
         }, { onlyOnce: true });
@@ -351,19 +356,25 @@ window.startMultiplayerGame = function() {
     if (!gameState.isHost) return;
     
     try {
+        const startTime = Date.now();
         update(ref(database, `rooms/${gameState.roomCode}`), {
             status: 'playing',
             difficulty: gameState.difficulty,
             duration: gameState.duration,
-            startedAt: Date.now()
+            startedAt: startTime,
+            timeLeft: gameState.duration
         });
         
         gameState.mode = 'multiplayer';
         showScreen('game-screen');
         initGame();
         listenToOpponent();
+        syncTimer();
     } catch (error) {
         console.error('Failed to start game:', error);
+        alert('Failed to start game. Please try again.');
+    }
+};
         alert('Failed to start game. Please try again.');
     }
 };
@@ -391,7 +402,10 @@ function updatePlayersList(players) {
             list.innerHTML += `<p>👤 ${player.name}</p>`;
         });
         
+        console.log('Players count:', Object.keys(players).length, 'isHost:', gameState.isHost);
+        
         if (Object.keys(players).length === 2 && gameState.isHost) {
+            console.log('Showing Start Game button');
             document.getElementById('start-game-btn').style.display = 'block';
         }
     }
@@ -416,6 +430,18 @@ function listenToOpponent() {
     } catch (error) {
         console.error('Failed to listen to opponent:', error);
     }
+}
+
+function syncTimer() {
+    if (!database || !gameState.roomCode) return;
+    
+    onValue(ref(database, `rooms/${gameState.roomCode}/timeLeft`), (snapshot) => {
+        const serverTime = snapshot.val();
+        if (serverTime !== null && !gameState.isHost) {
+            gameState.timeLeft = serverTime;
+            document.getElementById('timer').textContent = gameState.timeLeft;
+        }
+    });
 }
 
 function initGame() {
@@ -639,6 +665,13 @@ function updateTimer() {
     gameState.timeLeft--;
     document.getElementById('timer').textContent = gameState.timeLeft;
     
+    // Sync timer to Firebase for multiplayer (host only)
+    if (gameState.mode === 'multiplayer' && gameState.isHost && database) {
+        update(ref(database, `rooms/${gameState.roomCode}`), {
+            timeLeft: gameState.timeLeft
+        }).catch(err => console.error('Timer sync failed:', err));
+    }
+    
     if (gameState.timeLeft <= 0) {
         endGame();
     }
@@ -651,21 +684,43 @@ window.endGame = function() {
     
     try {
         if (gameState.mode === 'multiplayer' && gameState.roomCode && database) {
-            onValue(ref(database, `rooms/${gameState.roomCode}/players`), (snapshot) => {
-                const players = snapshot.val();
-                if (players) {
-                    const playersList = Object.entries(players);
-                    const myPlayer = playersList.find(([id]) => id === gameState.playerId);
-                    const opponentPlayer = playersList.find(([id]) => id !== gameState.playerId);
-                    
-                    const myScore = myPlayer ? myPlayer[1].score : gameState.score;
-                    const opponentScore = opponentPlayer ? opponentPlayer[1].score : 0;
-                    
-                    showResult(myScore > opponentScore ? 'You Win! 🎉' : myScore < opponentScore ? 'You Lose 😢' : 'Tie! 🤝', myScore, opponentScore);
-                } else {
-                    showResult('Game Over!', gameState.score);
-                }
-            }, { onlyOnce: true });
+            update(ref(database, `rooms/${gameState.roomCode}/players/${gameState.playerId}`), {
+                score: gameState.score
+            }).then(() => {
+                setTimeout(() => {
+                    onValue(ref(database, `rooms/${gameState.roomCode}/players`), (snapshot) => {
+                        const players = snapshot.val();
+                        if (players) {
+                            const playersList = Object.entries(players);
+                            const myPlayer = playersList.find(([id]) => id === gameState.playerId);
+                            const opponentPlayer = playersList.find(([id]) => id !== gameState.playerId);
+                            
+                            const myScore = myPlayer ? myPlayer[1].score : gameState.score;
+                            const opponentScore = opponentPlayer ? opponentPlayer[1].score : 0;
+                            const opponentName = opponentPlayer ? opponentPlayer[1].name : 'Opponent';
+                            
+                            let title, message;
+                            if (myScore > opponentScore) {
+                                title = '🎉 Congratulations!';
+                                message = `You won against ${opponentName}!`;
+                            } else if (myScore < opponentScore) {
+                                title = '😢 You Lost';
+                                message = `Sorry, you lost to ${opponentName}`;
+                            } else {
+                                title = '🤝 It\'s a Tie!';
+                                message = `You tied with ${opponentName}`;
+                            }
+                            
+                            showResult(title, myScore, opponentScore, message);
+                        } else {
+                            showResult('Game Over!', gameState.score);
+                        }
+                    }, { onlyOnce: true });
+                }, 500);
+            }).catch(error => {
+                console.error('Failed to update final score:', error);
+                showResult('Game Over!', gameState.score);
+            });
             
             setTimeout(() => {
                 if (gameState.isHost && database) {
@@ -673,7 +728,7 @@ window.endGame = function() {
                         console.error('Failed to delete room:', error)
                     );
                 }
-            }, 1000);
+            }, 2000);
         } else {
             showResult('Game Over!', gameState.score);
         }
@@ -683,7 +738,7 @@ window.endGame = function() {
     }
 };
 
-function showResult(title, score, opponentScore = null) {
+function showResult(title, score, opponentScore = null, customMessage = null) {
     showScreen('result-screen');
     document.getElementById('result-title').textContent = title;
     
@@ -692,9 +747,14 @@ function showResult(title, score, opponentScore = null) {
     const isNewHighScore = saveHighScore();
     const highScore = getHighScore();
     
-    let message = opponentScore !== null 
-        ? `Your Score: ${score} | Opponent: ${opponentScore}`
-        : `You spelled ${wordsCompleted} words correctly!`;
+    let message;
+    if (customMessage) {
+        message = customMessage;
+    } else if (opponentScore !== null) {
+        message = `Your Score: ${score} | Opponent: ${opponentScore}`;
+    } else {
+        message = `You spelled ${wordsCompleted} words correctly!`;
+    }
     
     if (isNewHighScore && opponentScore === null) {
         message += ' 🏆 NEW HIGH SCORE!';
