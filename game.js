@@ -2,8 +2,25 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getDatabase, ref, set, onValue, update, remove, push } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
-// Version: 1.0.1
+// Version: 1.0.2
 console.log('🎮 Blocword game.js loaded successfully');
+
+// Web3 Configuration
+const NFT_CONTRACT_ADDRESS = '0x0000000000000000000000000000000000000000'; // Deploy contract and update this
+const BASE_CHAIN_ID = 8453; // Base mainnet
+let web3Provider = null;
+let walletAddress = null;
+
+const BADGE_TYPES = {
+    FIRST_WORD: { id: 0, name: 'First Word', icon: '🌟', desc: 'Spell your first word' },
+    TEN_WORDS: { id: 1, name: '10 Words Master', icon: '🔥', desc: 'Complete 10 words' },
+    SPEED_DEMON: { id: 2, name: 'Speed Demon', icon: '⚡', desc: 'Spell 5 words in 1 minute' },
+    PERFECT_GAME: { id: 3, name: 'Perfect Game', icon: '🎯', desc: '10/10 words correct' },
+    VOCAB_BUILDER: { id: 4, name: 'Vocabulary Builder', icon: '📚', desc: 'Learn 50 unique words' }
+};
+
+let earnedBadges = [];
+let totalWordsSpelled = 0;
 
 // FIREBASE CONFIGURATION
 // Your actual Firebase config from Firebase Console
@@ -614,6 +631,9 @@ window.submitWord = function() {
             gameState.score += 10 + comboBonus;
             gameState.spelledWords.push(userWord);
             gameState.wordsRemaining--;
+            totalWordsSpelled++;
+            localStorage.setItem('totalWordsSpelled', totalWordsSpelled);
+            checkAndAwardBadges();
             
             sounds.playSuccess();
             createConfetti();
@@ -1127,3 +1147,107 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Enter') window.login();
     });
 });
+
+
+// Web3 Functions
+window.connectWallet = async function() {
+    if (typeof window.ethereum === 'undefined') {
+        alert('Please install MetaMask or Coinbase Wallet to collect badges!');
+        return;
+    }
+    
+    try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        walletAddress = accounts[0];
+        
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        if (parseInt(chainId, 16) !== BASE_CHAIN_ID) {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0x2105' }],
+                });
+            } catch (error) {
+                alert('Please switch to Base network in your wallet');
+                return;
+            }
+        }
+        
+        document.getElementById('connect-wallet-btn').textContent = '✅ Wallet Connected';
+        document.getElementById('wallet-address').textContent = `${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}`;
+        document.getElementById('wallet-address').style.display = 'block';
+    } catch (error) {
+        console.error('Wallet connection failed:', error);
+    }
+};
+
+window.showBadges = function() {
+    showScreen('badges-screen');
+    displayBadges();
+};
+
+function displayBadges() {
+    const container = document.getElementById('badges-container');
+    const statusEl = document.getElementById('badges-wallet-status');
+    
+    if (!walletAddress) {
+        statusEl.textContent = 'Connect wallet to view badges';
+        container.innerHTML = '';
+        return;
+    }
+    
+    statusEl.textContent = `Wallet: ${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}`;
+    container.innerHTML = '';
+    
+    Object.values(BADGE_TYPES).forEach(badge => {
+        const earned = earnedBadges.includes(badge.id);
+        const card = document.createElement('div');
+        card.className = `badge-card ${earned ? '' : 'badge-locked'}`;
+        card.innerHTML = `
+            <div class="badge-icon">${badge.icon}</div>
+            <div class="badge-name">${badge.name}</div>
+            <div class="badge-desc">${badge.desc}</div>
+            ${earned ? '<div style="color: #4CAF50; margin-top: 10px;">✅ Earned!</div>' : '<div style="opacity: 0.5; margin-top: 10px;">🔒 Locked</div>'}
+        `;
+        container.appendChild(card);
+    });
+}
+
+async function checkAndAwardBadges() {
+    if (!walletAddress) return;
+    
+    if (totalWordsSpelled === 1 && !earnedBadges.includes(BADGE_TYPES.FIRST_WORD.id)) {
+        await awardBadge(BADGE_TYPES.FIRST_WORD);
+    }
+    
+    if (gameState.spelledWords.length === 10 && !earnedBadges.includes(BADGE_TYPES.TEN_WORDS.id)) {
+        await awardBadge(BADGE_TYPES.TEN_WORDS);
+    }
+    
+    if (gameState.spelledWords.length === 10 && gameState.wordsRemaining === 0 && !earnedBadges.includes(BADGE_TYPES.PERFECT_GAME.id)) {
+        await awardBadge(BADGE_TYPES.PERFECT_GAME);
+    }
+}
+
+async function awardBadge(badge) {
+    if (!walletAddress) return;
+    
+    try {
+        alert(`🏆 Achievement Unlocked: ${badge.name}!\n\nAsk your parent to approve the transaction to collect your badge.`);
+        
+        earnedBadges.push(badge.id);
+        localStorage.setItem('earnedBadges', JSON.stringify(earnedBadges));
+    } catch (error) {
+        console.error('Failed to award badge:', error);
+    }
+}
+
+try {
+    const saved = localStorage.getItem('earnedBadges');
+    if (saved) earnedBadges = JSON.parse(saved);
+    
+    const savedTotal = localStorage.getItem('totalWordsSpelled');
+    if (savedTotal) totalWordsSpelled = parseInt(savedTotal);
+} catch (e) {
+    console.warn('Failed to load badges');
+}
