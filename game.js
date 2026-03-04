@@ -759,6 +759,8 @@ function showResult(title, score, opponentScore = null, customMessage = null) {
     showScreen('result-screen');
     document.getElementById('result-title').textContent = title;
     
+    updateLeaderboard(score);
+    
     const wordsCompleted = gameState.spelledWords.length;
     const stars = getStarRating(score, wordsCompleted);
     const isNewHighScore = saveHighScore();
@@ -1173,9 +1175,8 @@ window.connectWallet = async function() {
             }
         }
         
-        document.getElementById('connect-wallet-btn').textContent = '✅ Wallet Connected';
-        document.getElementById('wallet-address').textContent = `${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}`;
-        document.getElementById('wallet-address').style.display = 'block';
+        updateWalletButton();
+        console.log('Wallet connected:', walletAddress);
     } catch (error) {
         console.error('Wallet connection failed:', error);
     }
@@ -1250,4 +1251,99 @@ try {
     if (savedTotal) totalWordsSpelled = parseInt(savedTotal);
 } catch (e) {
     console.warn('Failed to load badges');
+}
+
+
+// Global Leaderboard
+async function loadLeaderboard() {
+    const leaderboardEl = document.getElementById('leaderboard-list');
+    
+    try {
+        const leaderboardRef = ref(database, 'leaderboard');
+        onValue(leaderboardRef, (snapshot) => {
+            const data = snapshot.val();
+            
+            if (!data) {
+                leaderboardEl.innerHTML = '<div class="loading">No players yet. Be the first!</div>';
+                return;
+            }
+            
+            const players = Object.entries(data)
+                .map(([id, player]) => ({ id, ...player }))
+                .sort((a, b) => b.totalScore - a.totalScore)
+                .slice(0, 10);
+            
+            leaderboardEl.innerHTML = players.map((player, index) => {
+                const rank = index + 1;
+                const rankClass = rank === 1 ? 'top1' : rank === 2 ? 'top2' : rank === 3 ? 'top3' : '';
+                const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+                
+                return `
+                    <div class="leaderboard-item">
+                        <div class="leaderboard-rank ${rankClass}">${medal || rank}</div>
+                        <div class="leaderboard-name">${player.name}</div>
+                        <div class="leaderboard-score">${player.totalScore}</div>
+                    </div>
+                `;
+            }).join('');
+        });
+    } catch (error) {
+        console.error('Failed to load leaderboard:', error);
+        leaderboardEl.innerHTML = '<div class="loading">Failed to load leaderboard</div>';
+    }
+}
+
+async function updateLeaderboard(score) {
+    if (!currentUser || !database) return;
+    
+    try {
+        const userId = currentUser.email.replace(/[.@]/g, '_');
+        const userRef = ref(database, `leaderboard/${userId}`);
+        
+        onValue(userRef, (snapshot) => {
+            const current = snapshot.val();
+            const newTotal = (current?.totalScore || 0) + score;
+            const gamesPlayed = (current?.gamesPlayed || 0) + 1;
+            
+            update(userRef, {
+                name: currentUser.name,
+                totalScore: newTotal,
+                gamesPlayed: gamesPlayed,
+                lastPlayed: Date.now()
+            });
+        }, { onlyOnce: true });
+    } catch (error) {
+        console.error('Failed to update leaderboard:', error);
+    }
+}
+
+// Update wallet button visibility and state
+function updateWalletButton() {
+    const walletBtn = document.getElementById('global-wallet-btn');
+    
+    if (walletAddress) {
+        walletBtn.textContent = `${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}`;
+        walletBtn.classList.add('connected');
+    } else {
+        walletBtn.textContent = '🔗 Connect Wallet';
+        walletBtn.classList.remove('connected');
+    }
+    
+    walletBtn.style.display = 'block';
+}
+
+// Load leaderboard on landing page
+if (document.getElementById('landing-screen').classList.contains('active')) {
+    loadLeaderboard();
+}
+
+// Show wallet button when logged in
+if (auth) {
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            updateWalletButton();
+        } else {
+            document.getElementById('global-wallet-btn').style.display = 'none';
+        }
+    });
 }
