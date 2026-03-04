@@ -468,3 +468,63 @@ button:hover {
     display: flex;
     gap: 5px;
 }
+
+/* Web3 Badges Styles */
+.badges-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.badge-card {
+    background: rgba(255,255,255,0.1);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.badge-card:hover {
+    transform: scale(1.05);
+}
+
+.badge-icon {
+    font-size: 4em;
+    margin-bottom: 10px;
+}
+
+.badge-locked {
+    opacity: 0.3;
+    filter: grayscale(100%);
+}
+
+.badge-name {
+    font-weight: bold;
+    margin: 10px 0 5px 0;
+}
+
+.badge-desc {
+    font-size: 0.85em;
+    opacity: 0.8;
+}
+
+#wallet-section {
+    background: rgba(255,255,255,0.1);
+    padding: 15px;
+    border-radius: 10px;
+}
+
+@media (max-width: 768px) {
+    .badges-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 15px;
+        padding: 15px;
+    }
+    
+    .badge-icon {
+        font-size: 3em;
+    }
+}
