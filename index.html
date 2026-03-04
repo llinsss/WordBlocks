@@ -42,9 +42,21 @@
     <div id="menu-screen" class="screen">
         <h1>🎮 Blocword</h1>
         <p id="welcome-message">Welcome! 👋</p>
+        <div id="wallet-section" style="margin: 20px 0;">
+            <button onclick="connectWallet()" id="connect-wallet-btn" class="btn-secondary">🔗 Connect Wallet (Parent)</button>
+            <p id="wallet-address" style="display:none; font-size: 0.9em; opacity: 0.8;"></p>
+        </div>
         <button onclick="startSinglePlayer()" class="btn-primary">Single Player</button>
         <button onclick="showMultiplayerMenu()" class="btn-secondary">Multiplayer</button>
+        <button onclick="showBadges()" class="btn-secondary">🏆 My Badges</button>
         <button onclick="logout()" class="btn-back">Logout</button>
+    </div>
+
+    <div id="badges-screen" class="screen">
+        <h2>🏆 My Achievement Badges</h2>
+        <p id="badges-wallet-status">Connect wallet to view badges</p>
+        <div id="badges-container" class="badges-grid"></div>
+        <button onclick="showMainMenu()" class="btn-back">Back</button>
     </div>
 
     <div id="multiplayer-menu" class="screen">
