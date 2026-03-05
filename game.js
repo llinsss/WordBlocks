@@ -2,8 +2,8 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getDatabase, ref, set, onValue, update, remove, push } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
-// Version: 1.0.3
-console.log('🎮 Blocword game.js loaded successfully');
+// Version: 1.0.4
+console.log('🎮 Tanna\'s blocWord game.js loaded successfully');
 
 // FIREBASE CONFIGURATION
 // Your actual Firebase config from Firebase Console
