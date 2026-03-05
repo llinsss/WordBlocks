@@ -29,6 +29,47 @@ try {
 let currentUser = null;
 let userCoins = 0;
 let dailyStreak = 0;
+let userCharacters = ['😊'];
+let selectedCharacter = '😊';
+let userAchievements = {};
+
+const CHARACTERS = [
+    { emoji: '😊', name: 'Happy', cost: 0 },
+    { emoji: '🐶', name: 'Puppy', cost: 100 },
+    { emoji: '🐱', name: 'Kitty', cost: 100 },
+    { emoji: '🦊', name: 'Fox', cost: 150 },
+    { emoji: '🐼', name: 'Panda', cost: 150 },
+    { emoji: '🦁', name: 'Lion', cost: 200 },
+    { emoji: '🐯', name: 'Tiger', cost: 200 },
+    { emoji: '🐸', name: 'Frog', cost: 150 },
+    { emoji: '🐰', name: 'Bunny', cost: 150 },
+    { emoji: '🐻', name: 'Bear', cost: 200 },
+    { emoji: '🦄', name: 'Unicorn', cost: 300 },
+    { emoji: '🐲', name: 'Dragon', cost: 300 },
+    { emoji: '🦖', name: 'Dino', cost: 250 },
+    { emoji: '🐝', name: 'Bee', cost: 100 },
+    { emoji: '🐙', name: 'Octopus', cost: 200 },
+    { emoji: '🦋', name: 'Butterfly', cost: 150 },
+    { emoji: '🐢', name: 'Turtle', cost: 150 },
+    { emoji: '🦉', name: 'Owl', cost: 200 },
+    { emoji: '🐧', name: 'Penguin', cost: 200 },
+    { emoji: '🦆', name: 'Duck', cost: 100 }
+];
+
+const ACHIEVEMENTS = [
+    { id: 'first_word', name: 'First Word', icon: '🎯', desc: 'Spell your first word', target: 1, type: 'words' },
+    { id: 'word_10', name: 'Word Master', icon: '📚', desc: 'Spell 10 words', target: 10, type: 'words' },
+    { id: 'word_50', name: 'Word Expert', icon: '🏆', desc: 'Spell 50 words', target: 50, type: 'words' },
+    { id: 'word_100', name: 'Word Legend', icon: '👑', desc: 'Spell 100 words', target: 100, type: 'words' },
+    { id: 'score_100', name: 'Century', icon: '💯', desc: 'Score 100 in one game', target: 100, type: 'score' },
+    { id: 'score_200', name: 'High Scorer', icon: '🌟', desc: 'Score 200 in one game', target: 200, type: 'score' },
+    { id: 'streak_3', name: 'On Fire', icon: '🔥', desc: '3 day streak', target: 3, type: 'streak' },
+    { id: 'streak_7', name: 'Week Warrior', icon: '⚡', desc: '7 day streak', target: 7, type: 'streak' },
+    { id: 'games_10', name: 'Dedicated', icon: '🎮', desc: 'Play 10 games', target: 10, type: 'games' },
+    { id: 'games_50', name: 'Committed', icon: '💪', desc: 'Play 50 games', target: 50, type: 'games' },
+    { id: 'perfect', name: 'Perfect!', icon: '✨', desc: 'Complete all 10 words', target: 1, type: 'perfect' },
+    { id: 'combo_5', name: 'Combo King', icon: '🎯', desc: '5x combo', target: 5, type: 'combo' }
+];
 
 const words = {
     easy: [
@@ -1328,4 +1369,151 @@ window.playAgain = function() {
     resetGame();
     showScreen('game-screen');
     initGame();
+};
+
+// Shop & Achievements System
+window.showShop = function() {
+    showScreen('shop-screen');
+    showShopTab('characters');
+};
+
+window.showAchievements = function() {
+    showScreen('achievements-screen');
+    loadAchievements();
+};
+
+window.showShopTab = function(tab) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`tab-${tab}`).classList.add('active');
+    
+    if (tab === 'characters') {
+        loadCharactersShop();
+    }
+};
+
+function loadCharactersShop() {
+    const content = document.getElementById('shop-content');
+    content.innerHTML = CHARACTERS.map(char => {
+        const owned = userCharacters.includes(char.emoji);
+        const selected = selectedCharacter === char.emoji;
+        const canBuy = userCoins >= char.cost;
+        
+        return `
+            <div class="shop-item ${owned ? '' : 'locked'} ${selected ? 'selected' : ''}" 
+                 onclick="handleCharacterClick('${char.emoji}', ${char.cost}, ${owned})">
+                <div class="item-icon">${char.emoji}</div>
+                <div class="item-name">${char.name}</div>
+                <div class="item-cost">${owned ? (selected ? '✓ Selected' : 'Select') : `💰 ${char.cost}`}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+window.handleCharacterClick = async function(emoji, cost, owned) {
+    if (owned) {
+        selectedCharacter = emoji;
+        gameState.character.emoji = emoji;
+        if (currentUser && database) {
+            const userId = currentUser.email.replace(/[.@]/g, '_');
+            await update(ref(database, `users/${userId}`), { selectedCharacter: emoji });
+        }
+        loadCharactersShop();
+    } else if (userCoins >= cost) {
+        if (confirm(`Buy ${emoji} for ${cost} coins?`)) {
+            userCharacters.push(emoji);
+            userCoins -= cost;
+            selectedCharacter = emoji;
+            gameState.character.emoji = emoji;
+            
+            if (currentUser && database) {
+                const userId = currentUser.email.replace(/[.@]/g, '_');
+                await update(ref(database, `users/${userId}`), {
+                    coins: userCoins,
+                    characters: userCharacters,
+                    selectedCharacter: emoji
+                });
+            }
+            updateCoinsDisplay();
+            loadCharactersShop();
+        }
+    } else {
+        alert(`Not enough coins! You need ${cost - userCoins} more coins.`);
+    }
+};
+
+function loadAchievements() {
+    const list = document.getElementById('achievements-list');
+    
+    if (!currentUser || !database) {
+        list.innerHTML = '<p>Login to track achievements!</p>';
+        return;
+    }
+    
+    const userId = currentUser.email.replace(/[.@]/g, '_');
+    onValue(ref(database, `users/${userId}/stats`), (snapshot) => {
+        const stats = snapshot.val() || {};
+        
+        list.innerHTML = ACHIEVEMENTS.map(ach => {
+            const progress = stats[ach.type] || 0;
+            const unlocked = progress >= ach.target;
+            const percent = Math.min((progress / ach.target) * 100, 100);
+            
+            return `
+                <div class="achievement-item ${unlocked ? 'unlocked' : ''}">
+                    <div class="item-icon">${ach.icon}</div>
+                    <div class="item-name">${ach.name}</div>
+                    <div class="item-cost">${ach.desc}</div>
+                    <div class="achievement-progress">${progress}/${ach.target} ${unlocked ? '✓' : ''}</div>
+                </div>
+            `;
+        }).join('');
+    }, { onlyOnce: true });
+}
+
+async function trackAchievement(type, value) {
+    if (!currentUser || !database) return;
+    
+    const userId = currentUser.email.replace(/[.@]/g, '_');
+    const statsRef = ref(database, `users/${userId}/stats`);
+    
+    onValue(statsRef, (snapshot) => {
+        const stats = snapshot.val() || {};
+        const newValue = type === 'score' || type === 'combo' ? Math.max(stats[type] || 0, value) : (stats[type] || 0) + value;
+        
+        update(statsRef, { [type]: newValue });
+        
+        // Check for new achievements
+        ACHIEVEMENTS.forEach(ach => {
+            if (ach.type === type && newValue >= ach.target && (!stats[ach.type] || stats[ach.type] < ach.target)) {
+                showAchievementUnlocked(ach);
+            }
+        });
+    }, { onlyOnce: true });
+}
+
+function showAchievementUnlocked(achievement) {
+    const popup = document.createElement('div');
+    popup.className = 'achievement-popup';
+    popup.innerHTML = `
+        <h2>🎉 Achievement Unlocked!</h2>
+        <div style="font-size: 3em; margin: 10px 0;">${achievement.icon}</div>
+        <h3>${achievement.name}</h3>
+        <p>${achievement.desc}</p>
+    `;
+    document.body.appendChild(popup);
+    
+    setTimeout(() => popup.remove(), 3000);
+}
+
+// Track achievements after game
+const originalEndGame = window.endGame;
+window.endGame = function() {
+    if (gameState.mode === 'single') {
+        trackAchievement('words', gameState.spelledWords.length);
+        trackAchievement('score', gameState.score);
+        trackAchievement('combo', gameState.combo);
+        trackAchievement('games', 1);
+        if (gameState.wordsRemaining === 0) trackAchievement('perfect', 1);
+    }
+    originalEndGame();
 };
