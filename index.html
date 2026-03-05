@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="talentapp:project_verification" content="bc04691a776f9c241f2e5aead6e9f9b79bd71ed34c459cc99de73fd9a0c27635dff2a9a80e06081dbe34414776c35dd46f175f174d86535008a859226ff34429">
-    <title>Word Blocks - Kids Learning Game</title>
+    <title>Blocword - Kids Learning Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -51,8 +54,17 @@
     <div id="menu-screen" class="screen">
         <h1>🎮 Blocword</h1>
         <p id="welcome-message">Welcome! 👋</p>
+        <div class="user-stats">
+            <div class="coins-container">
+                <span class="coin-icon">💰</span>
+                <span id="coins-display">0</span> coins
+            </div>
+            <div id="streak-display" style="display:none;"></div>
+        </div>
         <button onclick="startSinglePlayer()" class="btn-primary">Single Player</button>
         <button onclick="showMultiplayerMenu()" class="btn-secondary">Multiplayer</button>
+        <button onclick="showShop()" class="btn-shop">🛒 Shop</button>
+        <button onclick="showAchievements()" class="btn-achievements">🏆 Achievements</button>
         <button onclick="logout()" class="btn-back">Logout</button>
     </div>
 
@@ -141,7 +153,24 @@
         <h2 id="result-title">Game Over!</h2>
         <p id="result-message"></p>
         <div id="final-score"></div>
+        <div id="achievements-earned"></div>
         <button onclick="showMainMenu()" class="btn-primary">Main Menu</button>
+    </div>
+
+    <div id="shop-screen" class="screen">
+        <h2>🛒 Shop</h2>
+        <div class="shop-tabs">
+            <button onclick="showShopTab('characters')" class="tab-btn active" id="tab-characters">Characters</button>
+            <button onclick="showShopTab('powerups')" class="tab-btn" id="tab-powerups">Power-ups</button>
+        </div>
+        <div id="shop-content"></div>
+        <button onclick="showMainMenu()" class="btn-back">Back</button>
+    </div>
+
+    <div id="achievements-screen" class="screen">
+        <h2>🏆 Achievements</h2>
+        <div id="achievements-list"></div>
+        <button onclick="showMainMenu()" class="btn-back">Back</button>
     </div>
 
     <script type="module" src="game.js?v=1.0.1"></script>
