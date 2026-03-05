@@ -1593,3 +1593,12 @@ window.endGame = function() {
     }
     originalEndGame();
 };
+
+// Parent Info Modal
+window.showParentInfo = function() {
+    document.getElementById('parent-info-modal').style.display = 'flex';
+};
+
+window.closeParentInfo = function() {
+    document.getElementById('parent-info-modal').style.display = 'none';
+};
