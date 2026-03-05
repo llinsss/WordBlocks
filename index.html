@@ -32,6 +32,8 @@
     <div id="signup-screen" class="screen">
         <h2>Create Account</h2>
         <div class="auth-form">
+            <button onclick="loginWithGoogle()" class="btn-google">🔐 Sign up with Google</button>
+            <div class="divider">OR</div>
             <input type="text" id="signup-name" placeholder="Your Name" maxlength="20">
             <input type="email" id="signup-email" placeholder="Email">
             <input type="password" id="signup-password" placeholder="Password (min 6 characters)">
@@ -43,6 +45,8 @@
     <div id="login-screen" class="screen">
         <h2>Login</h2>
         <div class="auth-form">
+            <button onclick="loginWithGoogle()" class="btn-google">🔐 Sign in with Google</button>
+            <div class="divider">OR</div>
             <input type="email" id="login-email" placeholder="Email">
             <input type="password" id="login-password" placeholder="Password">
             <button id="login-btn" class="btn-primary">Login</button>
