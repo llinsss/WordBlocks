@@ -27,6 +27,8 @@ try {
 }
 
 let currentUser = null;
+let userCoins = 0;
+let dailyStreak = 0;
 
 const words = {
     easy: [
@@ -119,6 +121,7 @@ let gameState = {
     letterFrequency: {},
     combo: 0,
     particles: [],
+    coins: 0,
     character: {
         x: 275,
         y: 350,
@@ -739,6 +742,8 @@ function showResult(title, score, opponentScore = null, customMessage = null) {
     showScreen('result-screen');
     document.getElementById('result-title').textContent = title;
     
+    const coinsEarned = 10 + score;
+    awardCoins(coinsEarned);
     updateLeaderboard(score);
     
     const wordsCompleted = gameState.spelledWords.length;
@@ -1076,6 +1081,8 @@ function updateWelcomeMessage() {
     if (welcomeEl && currentUser) {
         welcomeEl.textContent = `Welcome, ${currentUser.name}! 👋`;
     }
+    loadUserCoins();
+    checkDailyStreak();
 }
 
 // Check auth state on load
@@ -1199,4 +1206,119 @@ async function updateLeaderboard(score) {
 // Load leaderboard on landing page
 if (document.getElementById('landing-screen')?.classList.contains('active')) {
     loadLeaderboard();
+}
+
+// Coins & Streaks System
+async function loadUserCoins() {
+    if (!currentUser || !database) return;
+    
+    try {
+        const userId = currentUser.email.replace(/[.@]/g, '_');
+        const userRef = ref(database, `users/${userId}`);
+        
+        onValue(userRef, (snapshot) => {
+            const data = snapshot.val();
+            userCoins = data?.coins || 0;
+            dailyStreak = data?.streak || 0;
+            updateCoinsDisplay();
+        });
+    } catch (error) {
+        console.error('Failed to load coins:', error);
+    }
+}
+
+async function awardCoins(amount) {
+    if (!currentUser || !database) return;
+    
+    try {
+        const userId = currentUser.email.replace(/[.@]/g, '_');
+        const userRef = ref(database, `users/${userId}`);
+        
+        onValue(userRef, (snapshot) => {
+            const current = snapshot.val();
+            const newTotal = (current?.coins || 0) + amount;
+            
+            update(userRef, {
+                coins: newTotal,
+                lastPlayed: Date.now()
+            });
+            
+            userCoins = newTotal;
+            updateCoinsDisplay();
+            showCoinsEarned(amount);
+        }, { onlyOnce: true });
+    } catch (error) {
+        console.error('Failed to award coins:', error);
+    }
+}
+
+async function checkDailyStreak() {
+    if (!currentUser || !database) return;
+    
+    try {
+        const userId = currentUser.email.replace(/[.@]/g, '_');
+        const userRef = ref(database, `users/${userId}`);
+        
+        onValue(userRef, (snapshot) => {
+            const data = snapshot.val();
+            const lastLogin = data?.lastLogin || 0;
+            const now = Date.now();
+            const oneDayMs = 24 * 60 * 60 * 1000;
+            const daysSince = Math.floor((now - lastLogin) / oneDayMs);
+            
+            let newStreak = data?.streak || 0;
+            let dailyReward = 0;
+            
+            if (daysSince === 1) {
+                newStreak++;
+                dailyReward = Math.min(10 + (newStreak - 1) * 10, 100);
+            } else if (daysSince > 1) {
+                newStreak = 1;
+                dailyReward = 10;
+            } else if (daysSince === 0 && !data?.claimedToday) {
+                dailyReward = Math.min(10 + newStreak * 10, 100);
+            }
+            
+            if (dailyReward > 0) {
+                const newCoins = (data?.coins || 0) + dailyReward;
+                update(userRef, {
+                    coins: newCoins,
+                    streak: newStreak,
+                    lastLogin: now,
+                    claimedToday: true
+                });
+                
+                dailyStreak = newStreak;
+                userCoins = newCoins;
+                showDailyReward(dailyReward, newStreak);
+            } else {
+                update(userRef, { lastLogin: now });
+            }
+        }, { onlyOnce: true });
+    } catch (error) {
+        console.error('Failed to check streak:', error);
+    }
+}
+
+function updateCoinsDisplay() {
+    const coinsEl = document.getElementById('coins-display');
+    const streakEl = document.getElementById('streak-display');
+    
+    if (coinsEl) coinsEl.textContent = userCoins;
+    if (streakEl && dailyStreak > 0) {
+        streakEl.textContent = `🔥 ${dailyStreak} day streak!`;
+        streakEl.style.display = 'block';
+    }
+}
+
+function showDailyReward(coins, streak) {
+    const msg = `🎉 Daily Login Bonus!\n+${coins} coins\n🔥 ${streak} day streak!`;
+    setTimeout(() => alert(msg), 500);
+}
+
+function showCoinsEarned(amount) {
+    const resultMsg = document.getElementById('result-message');
+    if (resultMsg) {
+        resultMsg.textContent += `\n💰 +${amount} coins earned!`;
+    }
 }
