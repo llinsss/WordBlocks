@@ -1322,3 +1322,10 @@ function showCoinsEarned(amount) {
         resultMsg.textContent += `\n💰 +${amount} coins earned!`;
     }
 }
+
+// Play Again Function
+window.playAgain = function() {
+    resetGame();
+    showScreen('game-screen');
+    initGame();
+};
