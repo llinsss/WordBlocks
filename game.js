@@ -1,6 +1,6 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getDatabase, ref, set, onValue, update, remove, push } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
 // Version: 1.0.4
 console.log('🎮 Tanna\'s blocWord game.js loaded successfully');
@@ -1113,6 +1113,21 @@ window.login = async function() {
     }
 };
 
+window.loginWithGoogle = async function() {
+    try {
+        const provider = new GoogleAuthProvider();
+        const result = await signInWithPopup(auth, provider);
+        currentUser = { 
+            name: result.user.displayName || 'Player',
+            email: result.user.email 
+        };
+        showScreen('menu-screen');
+        updateWelcomeMessage();
+    } catch (error) {
+        alert('Google login failed: ' + error.message);
+    }
+};
+
 window.logout = function() {
     signOut(auth).then(() => {
         currentUser = null;
@@ -1275,41 +1290,53 @@ async function loadUserCoins() {
 }
 
 async function awardCoins(amount) {
-    if (!currentUser || !database) {
-        console.log('❌ Cannot award coins: no user or database');
+    console.log('🔍 awardCoins called with amount:', amount);
+    console.log('🔍 currentUser:', currentUser);
+    console.log('🔍 database:', database ? 'connected' : 'not connected');
+    
+    if (!currentUser) {
+        alert('❌ Cannot award coins: You are not logged in!');
         return;
     }
     
-    console.log(`💰 Awarding ${amount} coins to user ${currentUser.email}`);
+    if (!database) {
+        alert('❌ Cannot award coins: Database not connected!');
+        return;
+    }
     
     try {
         const userId = currentUser.email.replace(/[.@]/g, '_');
         const userRef = ref(database, `users/${userId}`);
         
-        onValue(userRef, async (snapshot) => {
-            const current = snapshot.val();
-            const oldCoins = current?.coins || 0;
-            const newTotal = oldCoins + amount;
-            
-            console.log(`💵 Old coins: ${oldCoins}, Adding: ${amount}, New total: ${newTotal}`);
-            
-            await update(userRef, {
-                coins: newTotal,
-                lastPlayed: Date.now()
-            });
-            
-            userCoins = newTotal;
-            updateCoinsDisplay();
-            
-            console.log(`✅ Coins awarded successfully! New balance: ${newTotal}`);
-            
-            setTimeout(() => {
-                alert(`🎉 You earned ${amount} coins!\n💰 Total: ${newTotal} coins`);
-            }, 500);
-        }, { onlyOnce: true });
+        const snapshot = await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('Timeout')), 5000);
+            onValue(userRef, (snap) => {
+                clearTimeout(timeout);
+                resolve(snap);
+            }, { onlyOnce: true });
+        });
+        
+        const current = snapshot.val();
+        const oldCoins = current?.coins || 0;
+        const newTotal = oldCoins + amount;
+        
+        await update(userRef, {
+            coins: newTotal,
+            lastPlayed: Date.now()
+        });
+        
+        userCoins = newTotal;
+        updateCoinsDisplay();
+        alert(`🎉 You earned ${amount} coins!\n💰 Total: ${newTotal} coins`);
     } catch (error) {
-        console.error('❌ Failed to award coins:', error);
-        alert('Failed to award coins. Please check console.');
+        console.error('❌ Firebase failed:', error);
+        const localKey = `coins_${currentUser.email}`;
+        const localCoins = parseInt(localStorage.getItem(localKey) || '0');
+        const newTotal = localCoins + amount;
+        localStorage.setItem(localKey, newTotal.toString());
+        userCoins = newTotal;
+        updateCoinsDisplay();
+        alert(`⚠️ Offline Mode\n🎉 You earned ${amount} coins!\n💰 Total: ${newTotal} coins\n(Will sync when online)`);
     }
 }
 
