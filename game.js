@@ -1270,7 +1270,12 @@ async function loadUserCoins() {
 }
 
 async function awardCoins(amount) {
-    if (!currentUser || !database) return;
+    if (!currentUser || !database) {
+        console.log('Cannot award coins: no user or database');
+        return;
+    }
+    
+    console.log(`Awarding ${amount} coins to user`);
     
     try {
         const userId = currentUser.email.replace(/[.@]/g, '_');
@@ -1280,6 +1285,8 @@ async function awardCoins(amount) {
             const current = snapshot.val();
             const newTotal = (current?.coins || 0) + amount;
             
+            console.log(`Old coins: ${current?.coins || 0}, New total: ${newTotal}`);
+            
             update(userRef, {
                 coins: newTotal,
                 lastPlayed: Date.now()
@@ -1288,6 +1295,7 @@ async function awardCoins(amount) {
             userCoins = newTotal;
             updateCoinsDisplay();
             showCoinsEarned(amount);
+            alert(`🎉 You earned ${amount} coins! Total: ${newTotal} coins`);
         }, { onlyOnce: true });
     } catch (error) {
         console.error('Failed to award coins:', error);
