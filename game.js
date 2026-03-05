@@ -1123,6 +1123,7 @@ function updateWelcomeMessage() {
         welcomeEl.textContent = `Welcome, ${currentUser.name}! 👋`;
     }
     loadUserCoins();
+    loadUserData();
     checkDailyStreak();
 }
 
@@ -1371,10 +1372,38 @@ window.playAgain = function() {
     initGame();
 };
 
+// Load user data from Firebase
+async function loadUserData() {
+    if (!currentUser || !database) return;
+    
+    try {
+        const userId = currentUser.email.replace(/[.@]/g, '_');
+        const userRef = ref(database, `users/${userId}`);
+        
+        return new Promise((resolve) => {
+            onValue(userRef, (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    userCoins = data.coins || 0;
+                    userCharacters = data.characters || ['😊'];
+                    selectedCharacter = data.selectedCharacter || '😊';
+                    gameState.character.emoji = selectedCharacter;
+                    updateCoinsDisplay();
+                }
+                resolve();
+            }, { onlyOnce: true });
+        });
+    } catch (error) {
+        console.error('Failed to load user data:', error);
+    }
+}
+
 // Shop & Achievements System
 window.showShop = function() {
-    showScreen('shop-screen');
-    showShopTab('characters');
+    loadUserData().then(() => {
+        showScreen('shop-screen');
+        showShopTab('characters');
+    });
 };
 
 window.showAchievements = function() {
@@ -1435,6 +1464,7 @@ window.handleCharacterClick = async function(emoji, cost, owned) {
             }
             updateCoinsDisplay();
             loadCharactersShop();
+            alert(`${emoji} purchased! You now have ${userCoins} coins left.`);
         }
     } else {
         alert(`Not enough coins! You need ${cost - userCoins} more coins.`);
