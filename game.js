@@ -523,7 +523,7 @@ function initGame() {
         
         if (spawnInterval) clearInterval(spawnInterval);
         if (timerInterval) clearInterval(timerInterval);
-        spawnInterval = setInterval(spawnLetter, 1500);
+        spawnInterval = setInterval(spawnLetter, 800);
         timerInterval = setInterval(updateTimer, 1000);
         gameLoop();
     } catch (error) {
@@ -572,9 +572,12 @@ function spawnLetter() {
     });
     
     if (availableLetters.length > 0) {
-        const letter = availableLetters[Math.floor(Math.random() * availableLetters.length)];
-        const x = Math.random() * (canvas.width - 50);
-        gameState.fallingLetters.push(new FallingLetter(letter, x, gameState.difficulty));
+        // Spawn 2 letters at once to ensure faster availability
+        for (let i = 0; i < 2; i++) {
+            const letter = availableLetters[Math.floor(Math.random() * availableLetters.length)];
+            const x = Math.random() * (canvas.width - 50);
+            gameState.fallingLetters.push(new FallingLetter(letter, x, gameState.difficulty));
+        }
     }
 }
 
