@@ -4,7 +4,7 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, on
 
 // Version: 1.0.4
 console.log('🎮 Tanna\'s blocWord game.js loaded successfully');
-
+                                                                                                                                                
 // FIREBASE CONFIGURATION
 // Your actual Firebase config from Firebase Console
 const firebaseConfig = {
@@ -780,11 +780,16 @@ window.endGame = function() {
 };
 
 function showResult(title, score, opponentScore = null, customMessage = null) {
+    console.log(`🎮 Game ended! Score: ${score}, Mode: ${gameState.mode}`);
+    
     showScreen('result-screen');
     document.getElementById('result-title').textContent = title;
     
     const coinsEarned = 10 + score;
+    console.log(`💰 Calling awardCoins with ${coinsEarned} coins (10 base + ${score} score)`);
     awardCoins(coinsEarned);
+    
+    console.log(`🏆 Updating leaderboard with score: ${score}`);
     updateLeaderboard(score);
     
     const wordsCompleted = gameState.spelledWords.length;
@@ -1271,34 +1276,40 @@ async function loadUserCoins() {
 
 async function awardCoins(amount) {
     if (!currentUser || !database) {
-        console.log('Cannot award coins: no user or database');
+        console.log('❌ Cannot award coins: no user or database');
         return;
     }
     
-    console.log(`Awarding ${amount} coins to user`);
+    console.log(`💰 Awarding ${amount} coins to user ${currentUser.email}`);
     
     try {
         const userId = currentUser.email.replace(/[.@]/g, '_');
         const userRef = ref(database, `users/${userId}`);
         
-        onValue(userRef, (snapshot) => {
+        onValue(userRef, async (snapshot) => {
             const current = snapshot.val();
-            const newTotal = (current?.coins || 0) + amount;
+            const oldCoins = current?.coins || 0;
+            const newTotal = oldCoins + amount;
             
-            console.log(`Old coins: ${current?.coins || 0}, New total: ${newTotal}`);
+            console.log(`💵 Old coins: ${oldCoins}, Adding: ${amount}, New total: ${newTotal}`);
             
-            update(userRef, {
+            await update(userRef, {
                 coins: newTotal,
                 lastPlayed: Date.now()
             });
             
             userCoins = newTotal;
             updateCoinsDisplay();
-            showCoinsEarned(amount);
-            alert(`🎉 You earned ${amount} coins! Total: ${newTotal} coins`);
+            
+            console.log(`✅ Coins awarded successfully! New balance: ${newTotal}`);
+            
+            setTimeout(() => {
+                alert(`🎉 You earned ${amount} coins!\n💰 Total: ${newTotal} coins`);
+            }, 500);
         }, { onlyOnce: true });
     } catch (error) {
-        console.error('Failed to award coins:', error);
+        console.error('❌ Failed to award coins:', error);
+        alert('Failed to award coins. Please check console.');
     }
 }
 
