@@ -163,9 +163,6 @@
 
     <div id="shop-screen" class="screen">
         <h2>🛒 Shop</h2>
-        <div class="parent-notice">
-            👨👩👧 <strong>Parents:</strong> Premium characters can be owned forever as collectibles. <a href="#" onclick="showParentInfo(); return false;">Learn more</a>
-        </div>
         <div class="shop-tabs">
             <button onclick="showShopTab('characters')" class="tab-btn active" id="tab-characters">Characters</button>
             <button onclick="showShopTab('powerups')" class="tab-btn" id="tab-powerups">Power-ups</button>
@@ -176,25 +173,8 @@
 
     <div id="achievements-screen" class="screen">
         <h2>🏆 Achievements</h2>
-        <div class="parent-notice">
-            👨👩👧 <strong>Parents:</strong> You can claim achievement badges as collectibles. <a href="#" onclick="showParentInfo(); return false;">Learn more</a>
-        </div>
         <div id="achievements-list"></div>
         <button onclick="showMainMenu()" class="btn-back">Back</button>
-    </div>
-
-    <div id="parent-info-modal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <h3>👨👩👧 For Parents</h3>
-            <p>These optional features allow you to:</p>
-            <ul>
-                <li>✓ Claim achievement badges as digital collectibles</li>
-                <li>✓ Own premium characters permanently</li>
-                <li>✓ Verify scores on permanent record</li>
-            </ul>
-            <p><strong>Note:</strong> Requires a digital wallet and small fees (~$0.01-0.05)</p>
-            <button onclick="closeParentInfo()" class="btn-primary">Got it</button>
-        </div>
     </div>
 
     <script type="module" src="game.js?v=1.0.1"></script>
