@@ -419,6 +419,13 @@ button:hover {
     50% { transform: scale(1.1); }
 }
 
+.coins-earned {
+    font-size: 1.8em;
+    color: #FFD700;
+    margin: 15px 0;
+    font-weight: bold;
+}
+
 .stars {
     font-size: 2em;
     margin: 10px 0;
@@ -780,5 +787,114 @@ button:hover {
     
     .badge-icon {
         font-size: 3em;
+    }
+}
+
+/* Rounds System */
+#rounds-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.round-card {
+    background: rgba(255,255,255,0.1);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+    border: 3px solid transparent;
+}
+
+.round-card:hover:not(.locked) {
+    transform: scale(1.05);
+    border-color: #FFD700;
+}
+
+.round-card.locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(100%);
+}
+
+.round-card.completed {
+    border-color: #4CAF50;
+}
+
+.round-icon {
+    font-size: 4em;
+    margin: 10px 0;
+}
+
+.round-name {
+    font-size: 1.3em;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.round-desc {
+    font-size: 0.9em;
+    opacity: 0.8;
+    margin: 5px 0;
+}
+
+.round-stats {
+    font-size: 0.85em;
+    margin: 10px 0;
+    color: #FFD700;
+}
+
+.round-reward {
+    background: rgba(255,215,0,0.2);
+    padding: 5px 10px;
+    border-radius: 10px;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.btn-challenges {
+    background: #FF6B6B;
+    color: white;
+}
+
+.btn-progress {
+    background: #4ECDC4;
+    color: white;
+}
+
+.btn-category {
+    display: block;
+    width: 300px;
+    margin: 15px auto;
+    padding: 20px;
+    font-size: 1.3em;
+    line-height: 1.6;
+    background: #667eea;
+    color: white;
+}
+
+.category-desc {
+    font-size: 0.7em;
+    font-weight: normal;
+    opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+    #rounds-list {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+    }
+    
+    .round-icon {
+        font-size: 3em;
+    }
+    
+    .btn-category {
+        width: 90%;
+        font-size: 1.1em;
     }
 }

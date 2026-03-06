@@ -32,6 +32,7 @@ let dailyStreak = 0;
 let userCharacters = ['😊'];
 let selectedCharacter = '😊';
 let userAchievements = {};
+let currentRound = null;
 
 const CHARACTERS = [
     { emoji: '😊', name: 'Happy', cost: 0 },
@@ -813,9 +814,17 @@ function showResult(title, score, opponentScore = null, customMessage = null) {
     document.getElementById('result-message').textContent = message;
     document.getElementById('final-score').innerHTML = `
         <div>Final Score: ${score}</div>
-        <div class="stars">${'⭐'.repeat(stars)}${'\u2606'.repeat(3-stars)}</div>
+        <div class="coins-earned">💰 +${coinsEarned} coins earned!</div>
         ${opponentScore === null ? `<div class="high-score">High Score: ${highScore}</div>` : ''}
     `;
+    
+    // Show Next Round button for single player only
+    const nextBtn = document.getElementById('next-round-btn');
+    if (gameState.mode === 'single' && opponentScore === null) {
+        nextBtn.style.display = 'inline-block';
+    } else {
+        nextBtn.style.display = 'none';
+    }
 }
 
 function gameLoop() {
@@ -1413,9 +1422,20 @@ function showCoinsEarned(amount) {
 
 // Play Again Function
 window.playAgain = function() {
+    if (currentRound) {
+        // Replay same round
+        gameState.difficulty = currentRound.difficulty;
+        gameState.duration = currentRound.timeLimit;
+        gameState.timeLeft = currentRound.timeLimit;
+        gameState.wordsRemaining = currentRound.wordsToComplete;
+    }
     resetGame();
     showScreen('game-screen');
     initGame();
+};
+
+window.nextRound = function() {
+    showScreen('difficulty-screen');
 };
 
 // Load user data from Firebase
